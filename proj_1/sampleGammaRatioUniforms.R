@@ -3,12 +3,12 @@ f_star <- function(x, alpha){
   return (((alpha-1)/2)*log(x^2) -x)
 }
 
-sampleGammaRatioUniforms <- function(alpha, beta=1, n=1) { 
+sampleGammaRatioUniforms <- function(alpha, n=1) { 
   
   # Determine bounds on a log scale
-  a_pluss <- (alpha-1)/2 * log((alpha-1)*exp(-beta))
+  a_pluss <- (alpha-1)/2 * log((alpha-1)*exp(-1))
   a_minus <- 0
-  b_pluss <- (alpha+1)/2 * log((alpha+1)*exp(-beta))
+  b_pluss <- (alpha+1)/2 * log((alpha+1)*exp(-1))
   b_minus <- 0
   
   # Iterations

@@ -16,10 +16,13 @@ counts <- matrix(n,1)
 count_it <- 0
 for (alpha in 2:n) {
   
-  out <- sampleGammaRatioUniforms(alpha, 1, n)
+  out <- sampleGammaRatioUniforms(alpha, n)
   count_it <- count_it + 1
   counts[count_it] <- out$count 
 
 }
 
+library(ggplot2)
+frame <- data.frame(alpha = 2:n, counts = counts)
+ggplot(data = frame, aes(alpha,counts)) + geom_point(colour = "red")
 plot(2:n, counts)
