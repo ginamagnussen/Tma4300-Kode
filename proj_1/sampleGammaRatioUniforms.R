@@ -1,6 +1,6 @@
 # ---------- Utilities ------------ #
-f_star <- function(x, alpha){
-  return (((alpha-1)/2)*log(x^2) -x)
+f_star <- function(x1, x2, alpha){
+  return ((alpha-1)*(log(x2) - log(x1)) - exp(log(x2) - log(x1)))
 }
 
 sampleGammaRatioUniforms <- function(alpha, n=1) { 
@@ -15,25 +15,23 @@ sampleGammaRatioUniforms <- function(alpha, n=1) {
   count <- 1
   it <- 1
   
-  x_1 <- matrix(n,1)
-  x_2 <- matrix(n,2)
+  xSample <- matrix(n,1)
   
   # Until we have n realisations
   while (it <= n) {
     
     # Uniform sampling
-    u_1 <- runif(1) * a_pluss
-    u_2 <- runif(1) * b_pluss
+    log_u_1 <- log(runif(1)) + a_pluss
+    log_u_2 <- log(runif(1)) + b_pluss
     
     # Change of variables
-    x_2_square <- 2 * u_1
-    x_1_temp <- u_2 / u_1
+    x_2 <- log_u_1
+    x_1 <- log_u_2 - log_u_1
     
     # Acceptance
-    if (x_2_square <= f_star(x_1_temp, alpha)) {
+    if (2*x_2 <= f_star(x1, x2, alpha)) {
       
-      x_1[it] <- x_1_temp
-      x_2[it] <- u_1
+      xSample[it] <- x_1 - log_u_1
       
       # Increment
       it <- it + 1
@@ -44,7 +42,7 @@ sampleGammaRatioUniforms <- function(alpha, n=1) {
       count <- count + 1
     }
   }
-  struct <- data.frame(x_1, x_2 , count)
+  struct <- data.frame(xSample , count)
   
   return (struct)
 }
