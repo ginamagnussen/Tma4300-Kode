@@ -11,13 +11,13 @@ alpha <- 0.5
 gsample <- function(n,alpha){
   c <- (exp(1)*alpha)/(exp(1)+alpha)
   u <- runif(n)
-  
+
   x1 <- (u*(alpha/c))^(1/alpha)
   x2 <- -log((1/alpha+1/(exp(1))-u/c))
-  
-  
+
+
   x <- matrix(n,1)
-  
+
   for (i in 1:n){
     if(u[i]>= (c/alpha)){
       x[i] <- x2[i]
@@ -53,4 +53,3 @@ for (j in 1:n){
 }
 
 truehist(xsample)
-
