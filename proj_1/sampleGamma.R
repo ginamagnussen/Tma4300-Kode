@@ -15,7 +15,7 @@ sampleGamma <- function(alpha, beta, n) {
     xSample <- sampleGammaRejection(alpha, n)
   }
   else {
-    break
+    xSample <- sampleExponential(lambda = beta, n)
   }
   
   return (beta*xSample)
