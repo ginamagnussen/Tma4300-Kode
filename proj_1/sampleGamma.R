@@ -1,5 +1,5 @@
 # Sample gamma with any alpha and beta
-setwd("/home/shomea/m/marcusae/Documents/git/Tma4300-Kode/proj_1")
+setwd("/home/shomea/g/ginama/V2018/TMA4300 Computer Intensive Statistical Methods")
 source("sampleGammaRatioUniforms.R")
 source("sampleGammaRejection.R")
 
@@ -15,7 +15,7 @@ sampleGamma <- function(alpha, beta, n) {
     xSample <- sampleGammaRejection(alpha, n)
   }
   else {
-    break
+    xSample <- sampleExponential(lambda = beta, n)
   }
   
   return (beta*xSample)
