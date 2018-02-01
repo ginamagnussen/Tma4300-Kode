@@ -1,37 +1,40 @@
 # ---------- Utilities ------------ #
-f_star <- function(x1, x2, alpha){
-  return ((alpha-1)*(log(x2) - log(x1)) - exp(log(x2) - log(x1)))
+f_star <- function(x, alpha){
+  return (((alpha-1)/2)*x -exp(x))
 }
 
-sampleGammaRatioUniforms <- function(alpha, n=1) { 
+sampleGammaRatioUniforms <- function(alpha, n) { 
   
   # Determine bounds on a log scale
-  a_pluss <- (alpha-1)/2 * log((alpha-1)*exp(-1))
-  a_minus <- 0
-  b_pluss <- (alpha+1)/2 * log((alpha+1)*exp(-1))
-  b_minus <- 0
+  log_a_pluss <- (alpha-1)/2 * log((alpha-1)*exp(-1))
+  # log_a_pluss <- log(sqrt((alpha-1)^(alpha-1)*exp(1-alpha)))
+  #log_a_minus <- -Inf
+  log_b_pluss <- (alpha+1)/2 * log((alpha+1)*exp(-1))
+  # log_b_pluss <- log(sqrt((alpha+1)^(alpha+1)*exp(-(alpha+1))))
+  #log_b_minus <- -Inf # log of both limits...
   
   # Iterations
   count <- 1
   it <- 1
   
-  xSample <- matrix(n,1)
+  xSample <- matrix(0,n,1)
   
   # Until we have n realisations
   while (it <= n) {
     
     # Uniform sampling
-    log_u_1 <- log(runif(1)) + a_pluss
-    log_u_2 <- log(runif(1)) + b_pluss
+    log_u_1 <- log(runif(1)) + log_a_pluss
+    log_u_2 <- log(runif(1)) + log_b_pluss
     
     # Change of variables
-    x_2 <- log_u_1
-    x_1 <- log_u_2 - log_u_1
+    # x_2 <- log_u_1
+    # x_1 <- log_u_2 - log_u_1
+    log_x <- log_u_2 - log_u_1 #log(u1/u2)
     
     # Acceptance
-    if (2*x_2 <= f_star(x1, x2, alpha)) {
+    if (log_u_1 <= f_star(log_x, alpha)) {
       
-      xSample[it] <- x_1 - log_u_1
+      xSample[it] <- log_x
       
       # Increment
       it <- it + 1
@@ -42,7 +45,8 @@ sampleGammaRatioUniforms <- function(alpha, n=1) {
       count <- count + 1
     }
   }
-  struct <- data.frame(xSample , count)
+  struct <- data.frame(xSample = exp(xSample) , count)
   
   return (struct)
 }
+
