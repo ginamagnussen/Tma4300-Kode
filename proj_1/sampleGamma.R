@@ -2,6 +2,7 @@
 setwd("/home/shomea/g/ginama/V2018/TMA4300 Computer Intensive Statistical Methods")
 source("sampleGammaRatioUniforms.R")
 source("sampleGammaRejection.R")
+source("sampleExponential.R")
 
 # ------------- Main function -----#
 sampleGamma <- function(alpha, beta, n) {
@@ -15,7 +16,7 @@ sampleGamma <- function(alpha, beta, n) {
     xSample <- sampleGammaRejection(alpha, n)
   }
   else {
-    xSample <- sampleExponential(lambda = beta, n)
+    xSample <- sampleExponential(lambda = 1, n)
   }
   
   return (beta*xSample)
