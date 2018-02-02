@@ -3,6 +3,7 @@
 #setwd("/home/shomea/m/marcusae/Documents/git/Tma4300-Kode/proj_1")
 source("sampleGammaRejection.R")
 # PROBLEM A, Part 1
+# Comment added
 
 library(MASS)
 library(ggplot2)
