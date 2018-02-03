@@ -1,5 +1,6 @@
 setwd("/home/shomea/g/ginama/V2018/git/Tma4300-Kode/proj_1")
 source("importanceSample.R")
+# Sample p
 
 findIndex <- function(vec){
   for (i in 1:length(vec)) {
