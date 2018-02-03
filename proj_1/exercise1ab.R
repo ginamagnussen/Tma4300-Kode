@@ -62,7 +62,7 @@ check <- data.frame(mean = mean(xsample), truemean = alpha, var = var(xsample), 
 print(check)
 
 #Plot
-truehist(xsample, main = "Rejection sampling", xlim = range(0:3), col = "red")
+truehist(xsample, main = "Rejection sampling", xlim = range(0:3))
 lines(x,y, col = "red", lwd = 2)
 
 

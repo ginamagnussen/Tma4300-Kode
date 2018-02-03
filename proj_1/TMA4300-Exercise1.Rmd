@@ -214,9 +214,10 @@ f_{z}(z,\alpha) dz_1...dz_k &\propto
 The probability that two or more students has their birthday on the same day can be simulated as follows: Randomly assign a birth date to the $35$ in a given NTNU class, and check for duplicate dates. If so, count this event as a success. If not, assign dates randomly again and to the same check. Do this many times. The estimate is then the number of successes divided by the number of trials.
 
 ### 1: Independent birthdays, equally likely
+#### a)
 ```{r, eval = FALSE}
 # Birthdays
-sim <- 1000000
+sim <- 10000
 stud <- 35
 count <- 0
 
@@ -230,9 +231,9 @@ for (i in 1:sim){
 prob <- count/sim
 print(prob)
 ```
-
+#### b)
 Exact calculation:
-The probability that two or more students has their birthday on the same day, is the complement of the event that no students has their birthday on the same day. 
+The probability that two or more students has their birthday on the same day, is the complement of the event that no students has their birthday on the same day. Thus
 \[
 \begin{aligned}
 P(\text{no. of students with same birthday} \geq 2) &= 1 - P(\text{no students with same birthday}) \\
@@ -240,31 +241,47 @@ P(\text{no. of students with same birthday} \geq 2) &= 1 - P(\text{no students w
 \end{aligned}
 \]
 
-The difference between the simulated and exact answer is of order $10^{-3}$ or better with enough simulations. Thus, the simulated probability is quite good. 
+The difference between the simulated and exact answer is of order $10^{-3}$ or better with enough simulations, meaning the simulated probability is good. 
 
 
 ### 2: Bayesian model
 #### a)
-The posterior distribution of $(q_1, q_2, q_3, q_4)$ is 
+The posterior distribution of $(q_1, q_2, q_3, q_4)$, the distribution of the probabilities of being born in a specific season given observations, is 
 \[
 \begin{aligned}
-P(q_{1:4}) &\propto P(x_{1:4}|q_{1:4})P(x_{1:4}) \\
+P(q_{1:4}|x_{1:4}) &= \frac{P(x_{1:4}|q_{1:4})P(q_{1:4})}{P(x_{1:4})} \\
+&\propto P(x_{1:4}|q_{1:4})P(q_{1:4}) \\
 &\propto \prod_{i=1}^{k}q_i^{x_i}\cdot \prod_{i=1}^{k}q_{i}^{\alpha_i-1} \\
 &\propto \prod_{i=1}^{k} q_i^{x_i+\alpha_i-1} \\
 &\propto \prod_{i=1}^{k} q_i^{\bar{\alpha_i}-1}
 \end{aligned}
 \]
- where $(x_{1:4}) = (x_1, x_2, x_3, x_4)$ and similary for $q$. Thus, the posterior distribution is Dirichlet?? with parameters $\bar\alpha{i} = x_i + \alpha_i$. 
+ where $(x_{1:4}) = (x_1, x_2, x_3, x_4)$ and similary for $q$. Thus, the posterior distribution of $(q_1, q_2, q_3, q_4)$ is a Dirichlet distribution with parameters $\bar\alpha{i} = x_i + \alpha_i$, $i = 1,...,4$. 
+ - What is k? 
+
 
 #### b) 
+When the joint posterior distribution of $q_{1:4}$ is Dirichlet, the marginal distribution for each season is $q_i \sim beta \left(\alpha_i, \sum\limits_{k=1}^{4}\alpha_k - \alpha_i\right)$.
 
+These marginal distributions are plotted by simulating several Dirichlet distributions $x = (x_1,...,x_K)$, extracting for instance all $x_1$s, which are beta distributed with the same parameters, and making a histogram of these samples. The built-in function in R is used to verify that the simulation of the beta distributions, and thus also the Dirichlet distribution, is correct.
 
-
-
-The posterior distribution of $(q_1, q_2, q_3, q_4)$ is Dirichlet with parameters $\bar{\alpha_i}$, $i = 1,...,4$.
 
 ```{r pressure, echo=FALSE}
 plot(pressure)
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+### Sample p
+#### a)
+((Sample from posterior distribution $P(q_1,q_2,q_3,q_4|x_1,x_2,x_3,x_4)$ and $P(N_1,N_2,N_3,N_4|q_1,q_2,q_3,q_4)$))
+
+As in C.2, the distribution of $(N_1,N_2,N_3,N_4|q_1,q_2,q_3,q_4)$ will be multinomial with parameters $(m,q_1,q_2,q_3,q_4)$, but with $m = 35$.
+
+$(q_1,q_2,q_3,q_4) \sim Dirichlet(\alpha_1,\alpha_2,\alpha_3,\alpha_4)$
+$(N_1,N_2,N_3,N_4) \sim multinomial(m, q_1,q_2,q_3,q_4)$
+
+How to sample from a multinomial distribution:
+Divide the unit interval $[0,1]$ into four intervals $[0,q_1]\cup(q_1, q_1+q_2]\cup(q_1+q_2, q_1+q_2+q_3]\cup(q_1+q_2+q_3, q_1+q_2+q_3+q_4]$ such that the length of each interval is $q_1,q_2,q_3,q_4$ respectively. Then sample $u\sim Unif[0,1]$ and increment $N_i$ in the corresponding interval for $i = 1,...,4$.
+
+Given the sample of $N_1,N_2,N_3,N_4$, we can estimate $p$, the probability that  
