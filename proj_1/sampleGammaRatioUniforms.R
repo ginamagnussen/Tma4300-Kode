@@ -33,14 +33,13 @@ sampleGammaRatioUniforms <- function(alpha, n) {
     log_x <- log_u_2 - log_u_1 #log(u2/u1)
     
     # Acceptance
-    print(log_u_1 - f_star(log_x, alpha)); flush.console()
     if (log_u_1 <= f_star(log_x, alpha)) {
       
       xSample[it] <- log_x
       
       # Increment
       it <- it + 1
-      print(log_u_1 - f_star(log_x, alpha)); flush.console()
+      #print(log_u_1 - f_star(log_x, alpha)); flush.console()
       count <- count + 1
     }
     else {
