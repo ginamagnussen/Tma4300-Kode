@@ -6,12 +6,9 @@ f_star <- function(x, alpha){
 sampleGammaRatioUniforms <- function(alpha, n) { 
   
   # Determine bounds on a log scale
-  #log_a_pluss <- (alpha-1)/2 * log((alpha-1)*exp(-1))
   log_a_pluss <- (alpha-1)/2 * (log(alpha-1)-1)
-  # log_a_pluss <- log(sqrt((alpha-1)^(alpha-1)*exp(1-alpha)))
   #log_a_minus <- -Inf
   log_b_pluss <- (alpha+1)/2 * log((alpha+1)*exp(-1))
-  # log_b_pluss <- log(sqrt((alpha+1)^(alpha+1)*exp(-(alpha+1))))
   #log_b_minus <- -Inf # log of both limits...
   
   # Iterations

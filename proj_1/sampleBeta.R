@@ -1,5 +1,5 @@
 # Sample beta distribution
-setwd("/home/shomea/g/ginama/V2018/TMA4300 Computer Intensive Statistical Methods")
+setwd("/home/shomea/g/ginama/V2018/git/Tma4300-Kode/proj_1")
 source("sampleGamma.R")
 
 sampleBeta <- function(alpha, beta, n){

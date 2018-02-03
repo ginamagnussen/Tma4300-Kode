@@ -1,6 +1,7 @@
 # Part 3, Ratio of Uniforms
-#setwd("/home/shomea/m/marcusae/Documents/git/Tma4300-Kode/proj_1")
+setwd("/home/shomea/g/ginama/V2018/git/Tma4300-Kode/proj_1")
 source("sampleGammaRatioUniforms.R")
+library(ggplot2)
 
 # ---------- Utilities ------------ #
 # f_star <- function(x, alpha){
@@ -8,7 +9,7 @@ source("sampleGammaRatioUniforms.R")
 # }
 
 n <- 1000 # No. of samples
-alphamax <- 200
+alphamax <- 10
 counts <- matrix(0,1,alphamax-1)
 
 # Generating realisations for set of alphas
@@ -21,7 +22,5 @@ for (alpha in 2:alphamax) {
   
 }
 
-library(ggplot2)
 frame <- data.frame(alpha = 2:alphamax, counts = counts)
-#ggplot(data = frame, aes(alpha,counts)) + geom_point(colour = "red")
-plot(2:alphamax, counts)
+plot(2:alphamax, counts, main = "Rejection sampling: Number of iterations to achieve 1000 samples", xlab = "Alpha", ylab = "Counts", col = "red")
