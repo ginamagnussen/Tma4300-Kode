@@ -29,7 +29,7 @@ g(x) =
 is given with $c$ as a normalising constant and $\alpha \in (0,1)$. 
 
 #### a) 
-The cumulative distribution function $G_{X}(x)$ is then found by integrating over the different domains, 
+The cumulative distribution function $G_{X}(x)$ is then found by integrating over the different domains and taking into account that the cdf must be continuous, 
 \[
 G_{X}(x) = 
   \begin{cases}
@@ -39,7 +39,7 @@ G_{X}(x) =
   \end{cases}
 \]
 By using the property that the area under a pdf should integrate to 1, we find that
-$c = \frac{c\alpha}{e+\alpha}$
+$c = \frac{e\alpha}{e+\alpha}$
 
 The probability integral transform, setting $u = G_{X}(x)$ and solving for $x$, gives
 \[
@@ -51,9 +51,66 @@ The probability integral transform, setting $u = G_{X}(x)$ and solving for $x$, 
 \end{aligned}
 \]
 
+```{r}
+# #------Probability integral transform--------#
+# Initialize
+n <- 100000
+alpha <- 0.5
+x <- sort(runif(n,0.01,8))
+
+# Functions and sampling
+gsample <- function(n,alpha){
+  c <- (exp(1)*alpha)/(exp(1)+alpha)
+  u <- runif(n)
+  
+  x1 <- (u*(alpha/c))^(1/alpha)
+  x2 <- -log((1/alpha+1/(exp(1))-u/c))
+  
+  x <- matrix(0,n,1)
+  
+  for (i in 1:n){
+    if(u[i]>= (c/alpha)){
+      x[i] <- x2[i]
+    }
+    else {
+      x[i] <- x1[i]
+    }
+  }
+  return(x)
+}
+
+xsample2 <- gsample(n, alpha) 
+
+# Check sampling
+gfunc <- matrix(0,n,1)
+
+for (i in 1:n){
+  if(x[i] <= 0){
+    gfunc[i] <- 0
+  }
+  else if (x[i] < 1) {
+    gfunc[i] <- ((exp(1)*alpha)/(exp(1)+alpha))*(x[i]^(alpha-1))
+  }
+  else {
+    gfunc[i] <- ((exp(1)*alpha)/(exp(1)+alpha))*exp(-x[i])
+  }
+}
 
 
-the inverse expressions of the cumulative distribution function.
+
+# Plot
+dataf <- data.frame(x, gfunc, xsample2)
+# g <- ggplot(dataf)
+# g <- g + geom_histogram(aes(xsample2, y = ..density..), binwidth = 0.01, col = "black", fill = "grey")
+# g <- g + geom_line(aes(x, gfunc), col = "red")
+# g <- g + coord_cartesian(xlim = range(0:3)) + labs("hei")
+# g
+
+truehist(xsample2, xlab = "Samples of g(x), alpha = 0.5",main = "Probability integral transform", xlim = range(0:3), cex.main = 2, cex.lab = 1.5)
+lines(x,gfunc, col = "red", lwd = 3)
+
+```
+
 
 
 <!-- ------------------------------------------------------- -->
@@ -214,9 +271,10 @@ f_{z}(z,\alpha) dz_1...dz_k &\propto
 The probability that two or more students has their birthday on the same day can be simulated as follows: Randomly assign a birth date to the $35$ in a given NTNU class, and check for duplicate dates. If so, count this event as a success. If not, assign dates randomly again and to the same check. Do this many times. The estimate is then the number of successes divided by the number of trials.
 
 ### 1: Independent birthdays, equally likely
+#### a)
 ```{r, eval = FALSE}
 # Birthdays
-sim <- 1000000
+sim <- 10000
 stud <- 35
 count <- 0
 
@@ -230,9 +288,9 @@ for (i in 1:sim){
 prob <- count/sim
 print(prob)
 ```
-
+#### b)
 Exact calculation:
-The probability that two or more students has their birthday on the same day, is the complement of the event that no students has their birthday on the same day. 
+The probability that two or more students has their birthday on the same day, is the complement of the event that no students has their birthday on the same day. Thus
 \[
 \begin{aligned}
 P(\text{no. of students with same birthday} \geq 2) &= 1 - P(\text{no students with same birthday}) \\
@@ -240,31 +298,117 @@ P(\text{no. of students with same birthday} \geq 2) &= 1 - P(\text{no students w
 \end{aligned}
 \]
 
-The difference between the simulated and exact answer is of order $10^{-3}$ or better with enough simulations. Thus, the simulated probability is quite good. 
+The difference between the simulated and exact answer is of order $10^{-3}$ or better with enough simulations, meaning the simulated probability is good. 
 
 
 ### 2: Bayesian model
 #### a)
-The posterior distribution of $(q_1, q_2, q_3, q_4)$ is 
+The posterior distribution of $(q_1, q_2, q_3, q_4)$, the distribution of the probabilities of being born in a specific season given observations, is 
 \[
 \begin{aligned}
-P(q_{1:4}) &\propto P(x_{1:4}|q_{1:4})P(x_{1:4}) \\
+P(q_{1:4}|x_{1:4}) &= \frac{P(x_{1:4}|q_{1:4})P(q_{1:4})}{integral of something P(x_{1:4})} \\
+&\propto P(x_{1:4}|q_{1:4})P(q_{1:4}) \\
 &\propto \prod_{i=1}^{k}q_i^{x_i}\cdot \prod_{i=1}^{k}q_{i}^{\alpha_i-1} \\
 &\propto \prod_{i=1}^{k} q_i^{x_i+\alpha_i-1} \\
 &\propto \prod_{i=1}^{k} q_i^{\bar{\alpha_i}-1}
 \end{aligned}
 \]
- where $(x_{1:4}) = (x_1, x_2, x_3, x_4)$ and similary for $q$. Thus, the posterior distribution is Dirichlet?? with parameters $\bar\alpha{i} = x_i + \alpha_i$. 
+ where $(x_{1:4}) = (x_1, x_2, x_3, x_4)$ and similary for $q$. Thus, the posterior distribution of $(q_1, q_2, q_3, q_4)$ is a Dirichlet distribution with parameters $\bar\alpha{i} = x_i + \alpha_i$, $i = 1,...,4$. 
+ - What is k? 
+
 
 #### b) 
+When the joint posterior distribution of $q_{1:4}$ is Dirichlet, the marginal distribution for each season is $q_i \sim beta \left(\alpha_i, \sum\limits_{k=1}^{4}\alpha_k - \alpha_i\right)$.
+
+These marginal distributions are plotted by simulating several Dirichlet distributions $x = (x_1,...,x_K)$, extracting for instance all $x_1$s, which are beta distributed with the same parameters, and making a histogram of these samples. The built-in function in R is used to verify that the simulation of the beta distributions, and thus also the Dirichlet distribution, is correct. ?? Built-in or sample? Another option is to simulate the marginal beta distributions by using the relation between the gamma and the beta distribution, since we in the previous tasks have shown this sample generator to be reasonably correct. 
 
 
 
-
-The posterior distribution of $(q_1, q_2, q_3, q_4)$ is Dirichlet with parameters $\bar{\alpha_i}$, $i = 1,...,4$.
 
 ```{r pressure, echo=FALSE}
 plot(pressure)
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+### 3: Sample/Estimate p
+
+Given the probabilities $q_i$, of being born within a specific season we want to find the probability of $p$. This is here done by simulation. 
+Denote
+\[
+N_j = \text{no. of students born in season j,} \hspace{2mm} j \in \{1 = \text{spring}, ..., \text{4 = winter} \} 
+\]
+and set $m = 35$ again. 
+
+
+#### a) Sampling from posterior distribution $P(q_1,q_2,q_3,q_4|x_1,x_2,x_3,x_4)$ and $P(N_1,N_2,N_3,N_4|q_1,q_2,q_3,q_4)$))
+
+Sampling from posterior distribution $P(q_1,q_2,q_3,q_4|x_1,x_2,x_3,x_4)$ 
+
+KODE
+
+
+------------
+As in C.2, the distribution of $(N_1,N_2,N_3,N_4|q_1,q_2,q_3,q_4)$ will be multinomial with parameters $(m,q_1,q_2,q_3,q_4)$, but with $m = 35$.
+
+$(q_1,q_2,q_3,q_4) \sim Dirichlet(\alpha_1,\alpha_2,\alpha_3,\alpha_4)\\$
+$(N_1,N_2,N_3,N_4) \sim multinomial(m, q_1,q_2,q_3,q_4)$
+
+How to sample from a multinomial distribution:
+Divide the unit interval $[0,1]$ into four subsequent intervals <!--->
+$[0,q_1]\cup(q_1, q_1+q_2]\cup(q_1+q_2, q_1+q_2+q_3]\cup(q_1+q_2+q_3, q_1+q_2+q_3+q_4]$
+<!--->
+with length $q_1,q_2,q_3,q_4$ respectively. Then sample $u\sim Unif[0,1]$ and increment $N_j$ in the corresponding interval, in this case season, for $j = 1,...,4$. That is, if $u$ is between $q_1$ and $q_1+q_2$, then $N_2$ is incremented. Do this $m = 35$ times.
+
+#### b) 
+A formula for
+\[
+p = f(N_1, N_2, N_3, N_4)
+\]
+can be found by seeing that
+\[
+\begin{aligned}
+p &= P \left[ \left( Y_1 \cup Y_2 \cup Y_3 \cup Y_4 \right) =1\right]
+&= 1- P\left[ \left( Y_1 \cup Y_2 \cup Y_3 \cup Y_4 \right) =0\right]
+\end{aligned}
+\]
+
+where $Y_j$ is the event that two or more students have the same birthday in season $j$.
+
+Since birthdays between different students are independent of each other, we can assume that the event of no students having the same birthday in the spring is independent of the event that no students have the same birthday in the winter, since the events are disjoint. 
+So 
+\[
+p = 1- \left[P(Y_1=0) + P(Y_2 = 0) + P(Y_3=0) + P(Y_4=0)\right]
+\]
+Now, since the outcome of $Y_i$ is binary, we can render the above equation to a function of $N_i$ using that $K_i$ is the number of days in each season. This gives
+
+\[
+\begin{aligned}
+P(Y_i = 0) &= \frac{K_i(K_i-1)(K_i-2)...(K_i-(N_i-1))}{K_i!} \\
+{K_i\choose N_i} \cdot \frac{N_i!}{K_i^{N_i}}
+\end{aligned}
+\]
+and so
+\[
+p = 1-\left[\sum\limits_{i=1}^{4} {K_i \choose N_i } \cdot \frac{N_i!}{K_i!}\right]
+\]
+
+Now $p$ can be calculated by sampling from $(N_1,N_2,N_3,N_4|q_1,q_2,q_3,q_4)$, the multinomial distribution, calculating $p$ by using the formula above, repeating this $n$ times and then calculate the mean. 
+
+Confidence interval of posterior mean of $p$: Sort all the $n$ found values for $p$, and then remove the $2.5\%$ highest and lowest values. 
+
+Posterior mean is larger than the probability in C.1. This is reasonable because the probabilities $q$ determine how likely it is to have a birthday within one season. If one $q_i$ is larger than another, there are more chances of birthdays colliding within that season, and thus the probability of two or more people having the same birthday increases. 
+
+
+#### c)
+Assume now a Dirichlet prior with $\alpha_1 = \alpha_2 = \alpha_3 = \alpha_4 = 20$.
+
+Importance sampling
+
+Comment and explain result:
+- Small alphas, all equal, will not affect the distribution that much, the observations have a lot to say
+- Bigger alphas, if all are equal, will give uniformly distributed birthdays between seasons, and push the $q_i$s closer to $0.25$ (since the observations become less important.) Meaning we should get a similar result as in C1. 
+$\alpha_i$ significantly bigger than the others alphas will increase the $q_i$ (seen in pdf expression for $q|x$), the chance of colliding birthdays is bigger and thus p increases. 
+
+
+
