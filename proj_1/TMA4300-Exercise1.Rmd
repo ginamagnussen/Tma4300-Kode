@@ -51,7 +51,7 @@ The probability integral transform, setting $u = G_{X}(x)$ and solving for $x$, 
 \end{aligned}
 \]
 
-```{r}
+```{r, eval = FALSE, include=FALSE}
 # #------Probability integral transform--------#
 # Initialize
 n <- 100000
