@@ -1,0 +1,27 @@
+---
+title: "TMA4300 - Exercise 2"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE, autodep = TRUE, fig.path = 'figures/')
+```
+
+```{r, include=FALSE}
+# Libraries
+library("boot")
+library("ggplot2")
+```
+
+
+
+## Problem A: Coal-mining disaster data
+```{r, fig.cap="Plot of cumulative sum of coal-mining disasters as a function of year. \\label{disasters}"}
+# Data: Time intervals between successive coal-mining disasters
+# years 1851-1962
+frame <- data.frame(year = data <- coal[2:190,], disasters = c(1:189))
+ggplot(frame) + geom_point(aes(year,disasters))
+```
+
+Figure \ref{disasters} shows cumulative sum of disasters as a function of year.
+
