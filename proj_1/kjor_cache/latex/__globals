@@ -1,0 +1,6 @@
+unnamed-chunk-1	library	MASS	ggplot2	gridExtra
+unnamed-chunk-2	n	alpha	x	sort	runif	gsample	c	exp	u	x1	x2	log	matrix	i	return	xsample2	gfunc
+unnamed-chunk-3	dataf	data.frame	x	gfunc	xsample2	truehist	range	lines
+unnamed-chunk-4	acceptanceProb	x	return	exp	alpha	sampleGammaRejection	xsample	matrix	n	j	fin	gsample	acc	u	runif
+unnamed-chunk-5	alpha	xsample	sampleGammaRejection	n	gammaf	res	gamma	x	exp	return	y	check	data.frame	mean	var	print	truehist	range	lines
+unnamed-chunk-6	f_star	return	alpha	x	exp	sampleGammaRatioUniforms	log_a_pluss	log	log_b_pluss	count	it	xSample	matrix	n	log_u_1	runif	log_u_2	log_x	struct	data.frame

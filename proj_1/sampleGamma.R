@@ -21,3 +21,6 @@ sampleGamma <- function(alpha, beta, n) {
   
   return (beta*xSample)
 }
+
+sample <- sampleGamma(1,3,1000)
+truehist(sample)

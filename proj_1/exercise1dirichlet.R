@@ -12,7 +12,7 @@ meanDir <- function(alpha, K){
   mean_out <-  matrix(0, K, 1)
   for (it in 1:K){
     mean_out[it] <- alpha[it] / sum_alpha
-  }  
+  }
   return (mean_out)
 }
 
@@ -30,9 +30,22 @@ covDir <- function(alpha, K){
   return (cov_out)
 }
 
+sampleDirichlet <- function(alpha, K) {
+  zSample <- matrix(0,K,1)
+  dirSample <- matrix(0,K,1)
+  for (i in 1:K) {
+    zSample[i] <- sampleGamma(alpha[i], 1, 1)
+  }
+  for (i in 1:K) {
+    dirSample[i] <- zSample[i] / sum(zSample)
+  }
+  return (dirSample)
+}
+
 n <- 10000
 K <- 3
 alpha <- 1:K
+
 
 zSample <- matrix(0,n,K)
 dirSample <- matrix(0,n,K)

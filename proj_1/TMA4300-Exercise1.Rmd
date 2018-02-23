@@ -485,7 +485,7 @@ The probability that two or more students has their birthday on the same day can
 
 ```{r}
 # Birthdays
-sim <- 10000
+sim <- 1000000
 stud <- 35
 count <- 0
 

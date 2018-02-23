@@ -1,0 +1,16 @@
+unnamed-chunk-1	library	MASS	ggplot2	gridExtra
+unnamed-chunk-2	n	alpha	x	sort	runif	gsample	c	exp	u	x1	x2	log	matrix	i	return	xsample2	gfunc
+unnamed-chunk-3	dataf	data.frame	x	gfunc	xsample2	truehist	range	lines
+unnamed-chunk-4	acceptanceProb	x	return	exp	alpha	sampleGammaRejection	xsample	matrix	n	j	fin	gsample	acc	u	runif
+unnamed-chunk-5	alpha	xsample	sampleGammaRejection	n	gammaf	res	gamma	x	exp	return	y	check	data.frame	mean	var	print	truehist	range	lines
+unnamed-chunk-6	f_star	return	alpha	x	exp	sampleGammaRatioUniforms	log_a_pluss	log	log_b_pluss	count	it	xSample	matrix	n	log_u_1	runif	log_u_2	log_x	struct	data.frame
+unnamed-chunk-7	n	alphamax	counts	matrix	count_it	alpha	out	sampleGammaRatioUniforms	count	frame	data.frame	plot
+pressure	plot	pressure
+unnamed-chunk-8	sampleExponential	x	lambda	log	runif	n	return	sampleGamma	alpha	xFrame	sampleGammaRatioUniforms	xSample	sampleGammaRejection	beta
+unnamed-chunk-9	n	K	alpha	zSample	matrix	dirSample	dirMean	i	j	sampleGamma	sum	mean	xUni	seq	betaSamples_1	dbeta	betaSamples_2	betaSamples_3	par	c	truehist	lines
+unnamed-chunk-10	sim	stud	count	i	bdays	round	runif	sum	duplicated	prob	print
+unnamed-chunk-11	n	K	alpha	c	zSample	matrix	dirSample	dirMean	i	j	sampleGamma	sum	mean	xUni	seq	betaSamples_1	dbeta	betaSamples_2	betaSamples_3	betaSamples_4	par	truehist	lines
+unnamed-chunk-12	sampleBeta	Y	sampleGamma	alpha	n	Z	beta	xsample
+unnamed-chunk-13	sampleMultinomial	len_p	length	p	cumSum	matrix	i	u	runif	N	out	j	return
+unnamed-chunk-14	findIndex	i	length	vec	return	calcP	u	runif	p	c	out	sampleMultinomial	index	temp	weights	factorial	K	N	samplePosterior	post	matrix	draws	students	daysInSeason	computePosteriorMeans
+unnamed-chunk-15	students	draws	daysInSeason	matrix	c	p	means	computePosteriorMeans	means_sorted	sort	meanframe	data.frame	ggplot	geom_histogram	aes	..density..	labs

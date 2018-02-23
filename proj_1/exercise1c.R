@@ -4,10 +4,6 @@ source("sampleGammaRatioUniforms.R")
 library(ggplot2)
 
 # ---------- Utilities ------------ #
-# f_star <- function(x, alpha){
-#   return (((alpha-1)/2)*log(x^2) -x)
-# }
-
 n <- 1000 # No. of samples
 alphamax <- 10
 counts <- matrix(0,1,alphamax-1)
