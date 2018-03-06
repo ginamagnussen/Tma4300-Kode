@@ -1,4 +1,5 @@
 ---
+author: "Sindre Stranden, Jens Holck"
 output: pdf_document
 ---
 
