@@ -1,0 +1,135 @@
+---
+output: pdf_document
+---
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, include=FALSE}
+library(boot)
+library(invgamma)
+library(mcmc)
+library(coda)
+library(ggplot2)
+```
+
+```{r, echo=FALSE}
+divide_data = function(t) {
+  coalEvents = coal[2:190,]
+  indicator = coalEvents < t
+  index = sum(indicator)
+  return (index)
+}
+```
+
+```{r, include=FALSE}
+index = divide_data(1890)
+coal1 = coal[2:index,]
+coal2 = coal[(index+1):190,]
+a = seq(1,length(coal1),1)
+y = glm(a ~ coal1)
+summary(y)
+```
+
+
+```{r, include=FALSE}
+data(coal)
+y <- tabulate(floor(coal[[1]]))
+y <- y[1851:length(y)]
+barplot(y,xlab="years", ylab="frequency of disasters")
+```
+# Problem A: The Coal-mining Disaster Data
+
+We analyze a data set of time intervals between sucessive coal-mining disasters in the UK involving ten or more men killed (Jarrett, 1979). The data set is for the period March 15th 1851 to March 22nd 1962. In this period, there were 189 coal-mining disasters. In order to get a first impression of the data, we make a plot with year along the x-axis and cumulative number of disasters along the y-axis.  
+
+```{r}
+year = coal[2:190,]
+numberOfevents = seq(1,189,1)
+plot(year,numberOfevents)
+```
+From figure 1 we notice that the intensity of coal-mining disasters appear to be fairly constant in the time interval from 1860 to about 1890, as well as in the interval from 1900 to 1960. There were far more accidents in the first time interval than the last.
+
+We adopt a hierarchical Bayesian model to analyze the data set and assume that the coal-mining disasters follow an inhomogeneous Poisson process with with intensity function $\lambda(t)$. We assume $\lambda(t)$ to be piecewise constant with $n$ breakpoints. We let $t_0$ and $t_{n+1}$ denote the start and end times for the data set and let $t_k; k = 1,\ldots,n$ denote the break points of the intensity function. Hence,
+$$
+\lambda(t) = \begin{cases}
+\lambda_{k-1} \ &\text{for} \ t \in [t_{k-1},t_k), \ k = 1,\ldots,n, \\
+\lambda_n \ &\text{for} \ t \ \in [t_n,t_{n+1}].
+\end{cases}
+$$
+
+
+2.
+We now find an expression of the data likelihood for the observed data $x$, $f(x|t_1,\ldots,t_n,\lambda_0,\ldots,\lambda_n)$. We define $z_i$ as the number of coal-mining accidents occuring in the between $[t_i,t_{i+1})$ for $i = 0,\ldots,n$. We use that for the Poisson the number of events in the disjoint intervals $[t_0,t_1),\ldots,[t_{n-1},t_n), [t_n,t_{n+1}]$ are independent and Poisson distributed. Thus 
+
+$$
+f(x|t_1,\ldots,t_n,\lambda_0,\ldots,\lambda_n) = \prod_{i=0}^n f(x|t_i,t_{i+1},\lambda_i) = \prod_{i=0}^n \frac{(\lambda_i(t_{i+1}-t_i))^{z_i}}{z_i!} e^{-\lambda_i(t_{i+1}-t_i)}
+$$
+
+We assume $t_1,\ldots,t_n$ to be apriori uniformly distributed on the allowed values and $\lambda_0,\ldots,\lambda_n$ to be apriori independent of $t_1,\ldots,t_n$ and apriori independent each other. Apriori we assume all $\lambda_0,\ldots,\lambda_n$ to be distributed from the same gamma distribution with shape parameter $\alpha = 2$ and scale parameter $\beta$, i.e. 
+$$
+f(\lambda_i|\beta) = \frac{1}{\beta^2} \lambda_i e^{-\frac{\lambda_i}{\beta}} \ \text{for} \ \lambda_i \geq 0, \ i = 1,\ldots,n.
+$$
+Finally, for $\beta$ we use the improper prior 
+$$
+f(\beta) \propto \frac{\exp\{-\frac{1}{\beta}\}}{\beta} \ \text{for} \ \beta > 0.
+$$
+
+In the following we assume $n=1$ and define $\theta = (t_1,\lambda_0,\lambda_1,\beta)$.
+
+3. 
+We find an expression for the posterior distribution (up to a normalising constant) for $\theta$ given $x$, $f(\theta|x)$.
+$$
+f(\theta|x) \propto f(\theta,x) \propto f(x|\theta)f(\theta) \propto f(x|t_1,\lambda_0,\lambda_1,\beta) f(t_1,\lambda_0,\lambda_1,\beta) \\
+\propto f(x|t_1,\lambda_0,\lambda_1) f(t_1|\lambda_0,\lambda_1,\beta) \propto f(x|t_1,\lambda_0,\lambda_1)f(t_1)f(\lambda_0,\lambda_1,\beta) \\
+f(x|t_1,\lambda_0,\lambda_1)f(\lambda_0|\beta)f(\lambda_1|\beta)f(\beta)
+$$
+The first term is what we calculated earlier and we know the prior of the other distributions. Hence, the posterior distribution is given by
+$$
+f(\theta | Z) = C \cdot \frac{(\lambda_0 (t_1 - t_0))^{z_0}} {z_0!}e^{-\lambda_0(t_1-t_0)} \cdot \frac{(\lambda_1(t_2-t_1))^{z_1}}{z_1!} e^{-\lambda_1(t_2-t_1)} \cdot \frac{1}{\beta^2}\lambda_0 e^{-\lambda_0/\beta} \cdot  
+\frac{1}{\beta^2}\lambda_1 e^{-\lambda_1/\beta} \cdot \frac{e^{-\frac{1}{\beta}}}{\beta^2}
+$$
+where $C$ is the normalising constant.
+
+4.
+We now find the full conditionals for each of the elements in $\theta$. We start by finding $\beta|t_1,\lambda_0,\lambda_1,x$. Hence,
+$$
+f(\beta|t_1,\lambda_0,\lambda_1,x) \propto f(\beta,t_1,\lambda_0,\lambda_1,x)
+$$
+We exclude everything that is now constant to find 
+$$
+f(\beta|t_1,\lambda_0,\lambda_1,x) \propto \frac{1}{\beta^5}e^{-\frac{1}{\beta}(1+\lambda_0+\lambda_1)}
+$$
+which we recognice as the inverse gamma distribution with the following parameters
+$$
+\beta|t_1,\lambda_0,\lambda_1,x \sim \text{InvGamma}(4,1/(1 + \lambda_0 + \lambda_1))
+$$
+Furthermore, we determine the distributions $\lambda_0|t_1,\lambda_1,\beta,x$ and $\lambda_1|t_1,\lambda_0,\beta,x$ in the same manner.
+$$
+f(\lambda_0|t_1,\lambda_1,\beta,x) \propto f(\lambda_0,t_1,\lambda_1,\beta,x)
+$$
+Excluding everything that is now constant and combining the terms with $\lambda_0$, we get
+$$
+f(\lambda_0|t_1,\lambda_1,\beta,x) \propto \lambda_0^{z_0+1}e^{-\lambda_0(t_1-t_0+1/\beta)}
+$$
+This is the well-known gamma distribution. Hence,
+$$
+\lambda_0|t_1,\lambda_1,\beta,x \sim \text{Gamma}(z_0+2,1/(t_1-t_0+1/\beta))
+$$
+Similarly, 
+$$
+\lambda_1|t_1,\lambda_0,\beta,x \sim \text{Gamma} \sim (z_1+2, 1/(t_2-t_1+1/\beta))
+$$
+
+Finally, we determine $t_1|\lambda_0,\lambda_1,\beta,x$ using the same trick as earlier. 
+$$
+f(t_1|\lambda_0,\lambda_1,\beta,x) \propto f(t_1|\lambda_0,\lambda_1,\beta,x) 
+$$
+This becomes 
+$$
+f(t_1|\lambda_0,\lambda_1,\beta,x) \propto \frac{(\lambda_0(t_1-t_0))^{z_0}}{z_0!}\frac{(\lambda_1(t_2-t_1))^{z_1}}{z_1!}e^{-\lambda_0(t_1-t_0)}e^{-\lambda_1(t_2-t_1)}
+$$
+which we do not recognize as a well-known named distribution.
+
+5. 
+We will now define and implement a single site MCMC algorithm for $f(\theta|x)$.

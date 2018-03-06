@@ -1,0 +1,22 @@
+---
+title: "CompulsoryExercise2"
+author: "Jens&Sindre"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r child="ProblemA1-4.rmd"}
+```
+
+
+```{r child="ProblemA5.rmd"}
+```
+
+```{r child="ProblemA8.rmd"}
+```
+
+```{r child="ProblemB.rmd"}
+```

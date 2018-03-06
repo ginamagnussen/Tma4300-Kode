@@ -1,0 +1,185 @@
+---
+output: pdf_document
+---
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+* Problem B: Bayesian Image Reconstruction 
+
+We study how the ising model can be used as a prior distribution in an image reconstruction setting. We let $y = (y_{ij}, i = 1,\ldots,89, j=1,\ldots,85)$ be the observed "image.txt". We assume this to be a noisy version of an unobserved image $x = (x_{ij}, i = 1,\ldots,89, j=1,\ldots,85)$ with $x_{ij}\in\{0,1\}$. Our goal in this problem is to use the observed $y$ to estimate $x$. We assume the elements in $y$ to be conditionally independent given $x$ and 
+\begin{align}
+y_{ij}|x\sim N(\mu_{x_{ij}},\sigma^2_{x_{ij}})
+\label{normaldist}
+\end{align}
+
+where $\mu_0, \mu_1$ are the mean values for $y_{ij}$ when $x_{ij}$ is zero and one, respectively and $\sigma_0^2$ and $\sigma_1^2$ are corresponding variances. Apriori we assume x to be independent of $\varphi = (\mu_0,\mu_1,\sigma_0,\sigma_1)$. As prior for $x$ we assume an Ising model with interaction parameter $\beta$, i.e. 
+
+\begin{equation}
+f(x) \propto \exp\Big\{\beta \sum_{(i,j)\sim(k,l)} I(x_{ij} = x_{kl}) \Big\}
+\label{xdist}
+\end{equation}
+where the sum is over all pairs of neighbour nodes in the $89 \times 85$ lattice and the value of $\beta$ is assumed to be known. To define a prior for $\varphi$ we follow a procedure used in Austad and Tjelmeland (2017). We first define a reparametrisation to new parameters $(m_0,\theta,s,\tau)$ by the relations
+
+$$
+\sigma_0 = s \cdot \tau, \ \sigma_1 = \frac{s}{\tau}, \ \mu_0 = m_0, \ \text{and} \ \mu_1 = m_0 + s\theta 
+$$
+The $s$ defines a scale, $\theta$ defines the difference between the two mean values in this scale, and $\tau$ defines $\sigma_0$ and $\sigma_1$ using the same scale. We then define a prior for $\varphi = (\mu_0,\mu_1,\sigma_0,\sigma_1)$ implicitly by assigning a prior for $(m_0,\theta,s,\tau)$
+
+$$
+f(\tau) = \begin{cases}
+\frac{1}{2\tau^2}e^{-(\frac{1}{\tau}-1)} & \text{for} \ \tau \in (0,1], \\
+\frac{1}{2}e^{-(\tau-1)} & \text{for} \ \tau > 1.
+\end{cases}
+$$
+We use the transformation formula to find the corresponding prior for $t = 1/\tau$. We let $t = 1/\tau$, such that $\tau = 1/t = w(t)$. The pdf $g(t)$ for $t$ will then be given by
+
+$$
+g(t) = f(w(t))\cdot |w'(t)| 
+$$
+which gives
+
+$$
+g(t) = \begin{cases}
+\frac{1}{2}t^2 e^{-(t-1)} \cdot \frac{1}{t^2} \ &\text{for} \ t \geq 1 \\
+\frac{1}{2} e^{-(t-1)}\cdot \frac{1}{t^2} \ &\text{for} \ t \in(0,1)
+\end{cases} = \begin{cases}
+\frac{1}{2}e^{-(t-1)} \ &\text{for} \ t \geq 1 \\
+\frac{1}{2t^2} e^{-(\frac{1}{t}-1)} \ &\text{for} \ t \in(0,1)
+\end{cases}
+$$
+Notice how the intervals changes and that the expressions for $f(\tau)$ and $g(t)$ are the same. Hence, the priors for $\tau$ and $t$ are identical and we can use this to argue that the marginal priors for $\sigma_0$ and $\sigma_1$ are identical. This is easily shown since $\sigma_0 = s \cdot \tau$ and $\sigma_1 = \frac{s}{\tau}$.
+
+2.
+We show that the resulting (improper) prior for $\varphi = (\mu_0,\mu_1,\sigma_0,\sigma_1)$ becomes (up to proportionality)
+
+$$
+f(\varphi) \propto \begin{cases}
+\frac{(\mu_1-\mu_0)^3}{\sigma_0^3\sigma_1^2}\exp\{-\Big[\frac{\mu_1-\mu_0}{\sqrt{\sigma_0\sigma_1}}+\sqrt{\frac{\sigma_1}{\sigma_0}}\Big]\} \ &\text{for} \ \sigma_0 \leq \sigma_1 \ \text{and} \ \mu_0 < \mu_1 \\
+\frac{(\mu_1-\mu_0)^3}{\sigma_0^2\sigma_1^3}\exp\{-\Big[\frac{\mu_1-\mu_0}{\sqrt{\sigma_0\sigma_1}}+\sqrt{\frac{\sigma_0}{\sigma_1}}\Big]\} \ &\text{for} \ \sigma_0 > \sigma_1 \ \text{and} \ \mu_0 < \mu_1 
+\end{cases}
+$$
+We must use the transformation formula with 4 variables. We thus have 
+$$
+f(\varphi) = f(m_0,s,\tau,\theta) = f(m_0)f(s)f(\tau)f(\theta)\cdot |J|
+$$
+because of independence, where $J$ is the $4\times4$ Jacobi determinant shown in \eqref{jacobi}. Since $m_0$ and $s$ are assumed to be improper uniform distributed, we have that
+
+$$
+f(\varphi) \propto f(\tau)f(\theta)\cdot |J|
+$$
+
+The Jacobi determinant is given by
+\begin{align}
+J = \begin{vmatrix}
+\frac{\partial m_0}{\partial \mu_0} & \frac{\partial m_0}{\partial \mu_1} & \frac{\partial m_0}{\partial \sigma_0} & \frac{\partial m_0}{\partial \sigma_1} \\
+\frac{\partial s}{\partial \mu_0} & \frac{\partial s}{\partial \mu_1} & \frac{\partial s}{\partial \sigma_0} & \frac{\partial s}{\partial \sigma_1} \\
+\frac{\partial \tau}{\partial \mu_0} & \frac{\partial \tau}{\partial \mu_1} & \frac{\partial \tau}{\partial \sigma_0} & \frac{\partial \tau}{\partial \sigma_1} \\
+\frac{\partial \theta}{\partial \mu_0} & \frac{\partial \theta}{\partial \mu_1} & \frac{\partial \theta}{\partial \sigma_0} & \frac{\partial \theta}{\partial \sigma_1}
+\end{vmatrix}
+\label{jacobi}
+\end{align}
+
+which becomes
+
+$$
+J = \begin{vmatrix}
+1 & 0 & 0 & 0 \\
+0 & 0 & \frac{1}{2}\sqrt{\frac{\sigma_1}{\sigma_0}} & \frac{1}{2}\sqrt{\frac{\sigma_0}{\sigma_1}} \\
+0 & 0 & \frac{1}{2\sqrt{\sigma_0\sigma_1}} & -\frac{1}{2}\sqrt{\frac{\sigma_0}{\sigma_1^3}} \\
+-\frac{1}{\sqrt{\sigma_0\sigma_1}} & \frac{1}{\sqrt{\sigma_0\sigma_1}} & -\frac{(\mu_1-\mu_0)}{2\sqrt{\sigma_0^3\sigma_1}} & -\frac{(\mu_1-\mu_0)}{2\sqrt{\sigma_0\sigma_1^3}}
+\end{vmatrix}
+$$
+This can now be reduced to 
+$$
+J = 1 \cdot \begin{vmatrix}
+0 & \frac{1}{2}\sqrt{\frac{\sigma_1}{\sigma_0}} & \frac{1}{2}\sqrt{\frac{\sigma_0}{\sigma_1}} \\
+0 & \frac{1}{2\sqrt{\sigma_0\sigma_1}} & -\frac{1}{2}\sqrt{\frac{\sigma_0}{\sigma_1^3}} \\
+\frac{1}{\sqrt{\sigma_0\sigma_1}} & -\frac{(\mu_1-\mu_0)}{2\sqrt{\sigma_0^3\sigma_1}} & -\frac{(\mu_1-\mu_0)}{2\sqrt{\sigma_0\sigma_1^3}}
+\end{vmatrix} = 1 \cdot \frac{1}{\sqrt{\sigma_0\sigma_1}} \cdot \begin{vmatrix}
+\frac{1}{2}\sqrt{\frac{\sigma_1}{\sigma_0}} & \frac{1}{2}\sqrt{\frac{\sigma_0}{\sigma_1}} \\
+\frac{1}{2\sqrt{\sigma_0\sigma_1}} & -\frac{1}{2}\sqrt{\frac{\sigma_0}{\sigma_1^3}} \\
+\end{vmatrix} = -\frac{1}{2\sqrt{\sigma_0\sigma_1^3}}
+$$
+
+Hence, we get 
+\begin{align}
+f(\varphi) \propto f(\tau)f(\theta)\cdot |J|
+\propto \begin{cases}
+\frac{1}{2}\frac{\sigma_1}{\sigma_0}e^{-\Big(\sqrt{\frac{\sigma_1}{\sigma_0}}-1\Big)}\cdot\Big(\frac{\mu_1-\mu_0}{\sqrt{\sigma_0\sigma_1}}\Big)^3 e^{-\frac{\mu_1-\mu_0}{\sqrt{\sigma_0\sigma_1}}} \cdot \frac{1}{2\sqrt{\sigma_0\sigma_1^3}} \ &\text{for} \ \sigma_0 \leq \sigma_1 \ \text{and} \ \mu_0 < \mu_1 \\ \nonumber
+\frac{1}{2}e^{-\Big(\sqrt{\frac{\sigma_0}{\sigma_1}}-1\Big)}\cdot \Big(\frac{\mu_1-\mu_0}{\sqrt{\sigma_0\sigma_1}}\Big)^3 e^{-\frac{\mu_1-\mu_0}{\sqrt{\sigma_0\sigma_1}}}\cdot \frac{1}{2\sqrt{\sigma_0\sigma_1^3}} \ &\text{for} \ \sigma_0 > \sigma_1 \ \text{and} \ \mu_0 < \mu_1 
+\end{cases} \\
+f(\varphi) \propto \begin{cases}
+\frac{(\mu_1-\mu_0)^3}{\sigma_0^3\sigma_1^2}\exp\{-\Big[\frac{\mu_1-\mu_0}{\sqrt{\sigma_0\sigma_1}}+\sqrt{\frac{\sigma_1}{\sigma_0}}\Big]\} \ &\text{for} \ \sigma_0 \leq \sigma_1 \ \text{and} \ \mu_0 < \mu_1 \\
+\frac{(\mu_1-\mu_0)^3}{\sigma_0^2\sigma_1^3}\exp\{-\Big[\frac{\mu_1-\mu_0}{\sqrt{\sigma_0\sigma_1}}+\sqrt{\frac{\sigma_0}{\sigma_1}}\Big]\} \ &\text{for} \ \sigma_0 > \sigma_1 \ \text{and} \ \mu_0 < \mu_1 
+\end{cases}
+\label{taudist}
+\end{align}
+
+which is what we wanted to show.
+
+3.
+We find (up to proportionality) a formula for the posterior distribution $f(x,\varphi|y)$. We thus have 
+$$
+f(x,\varphi|y) \propto f(y|x,\varphi)\cdot f(x,\varphi) \propto f(y|x) \cdot f(x)\cdot f(\varphi)
+$$
+All of these distributions are known to us from equations \eqref{normaldist}, \eqref{xdist} and \eqref{taudist}.
+
+\begin{align*}
+f(x,\varphi|y) \propto &\frac{1}{\sqrt{2\pi}\sigma_{x_{ij}}} e^{-\frac{1}{2\sigma_{x_{ij}}^2}\Big(y_{ij}-\mu_{x_{ij}}\Big)^2} \cdot \exp\Big\{\beta \sum_{(i,j)\sim(k,l)} I(x_{ij} = x_{kl}) \Big\} \\ \cdot &\begin{cases}
+\frac{(\mu_1-\mu_0)^3}{\sigma_0^3\sigma_1^2}\exp\{-\Big[\frac{\mu_1-\mu_0}{\sqrt{\sigma_0\sigma_1}}+\sqrt{\frac{\sigma_1}{\sigma_0}}\Big]\} \ &\text{for} \ \sigma_0 \leq \sigma_1 \ \text{and} \ \mu_0 < \mu_1 \\
+\frac{(\mu_1-\mu_0)^3}{\sigma_0^2\sigma_1^3}\exp\{-\Big[\frac{\mu_1-\mu_0}{\sqrt{\sigma_0\sigma_1}}+\sqrt{\frac{\sigma_0}{\sigma_1}}\Big]\} \ &\text{for} \ \sigma_0 > \sigma_1 \ \text{and} \ \mu_0 < \mu_1 
+\end{cases}
+\end{align*}
+
+4. 
+We define and implement a Metropolis-Hastings algorithm for simulating from $f(x,\varphi|y)$
+```{r}
+fratio = function(x,i,j,beta) {
+  counter = 0
+  right = x[i,j] == x[i+1,j]
+  if (length(right) == 0) {
+    counter = counter + 1
+    right = 0
+  }
+  left = x[i,j] == x[i-1,j]
+  if (length(left) == 0) {
+    counter = counter + 1
+    left = 0
+  }
+  up = x[i,j] == x[i,j-1]
+  if (length(up) == 0) {
+    counter = counter + 1
+    up = 0
+  }
+  down = x[i,j] == x[i,j+1]
+  if (length(down) == 0) {
+    counter = counter + 1
+    down = 0
+  }
+  
+indicator = right + left + up + down
+fratio = exp(beta*(4-counter-indicator))
+return (fratio)
+}
+```
+
+
+
+```{r}
+y = read.table("./image.txt", header = FALSE, sep = " ")
+nrows = dim(y)[1]
+ncolumns = dim(y)[2]
+x = matrix(rbinom(nrows * ncolumns, 1, 0.5), ncol = ncolumns, nrow = nrows)
+i = ceiling(nrows*runif(1))
+j = ceiling(ncolumns*runif(1))
+x_prop = 1 - x[i,j]
+
+fratio(xprop,i,j,beta)
+alpha = min(1,fratio)
+
+
+u = runif(1)
+```
+

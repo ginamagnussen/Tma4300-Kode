@@ -1,0 +1,35 @@
+---
+title: "ProblemA8"
+author: "Sindre & Jens"
+date: "March 1, 2018"
+output: pdf_document
+---
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Task 8
+a)
+A block proposal for $( t_1, \lambda_0, \lambda_1$ keeping $\beta$ unchanged. Generate the potential new values
+$( \tilde t_1, \tilde \lambda_0, \tilde \lambda_1$ by first generating $\tilde t_1$ from a normal distributi1on centered at the current value of $t_1$ and thereafter generate $\tilde \lambda_0, \tilde \lambda_1$ from their joint full conditionals inserted the potential new
+value $t_1$, i.e. $f( \lambda_1, \lambda_2|x, t_1, \beta).$
+b)
+Now the acceptance probability becomes
+
+$$
+\alpha = min(1,\frac{f(\tilde t , \tilde \lambda_0 ,\tilde \lambda_1 | \tilde z)}{f(t ,\lambda_0, \lambda_1| z)} \cdot \frac{Q( \lambda_0, \lambda_1,  t_1 |\tilde \lambda_0, \tilde \lambda_1, \tilde t_1)}{Q(\tilde \lambda_0, \tilde \lambda_1, \tilde t_1 |\lambda_0, \lambda_1, t_1)})
+$$
+where 
+$$
+\frac{f(\tilde t , \tilde \lambda_0 ,\tilde \lambda_1 | \tilde z)}{f(t ,\lambda_0, \lambda_1| z)} = \frac {(\tilde \lambda_0 (\tilde t_1 - t_0))^{\tilde 
+z_0} \cdot( \tilde \lambda_1(t_2- \tilde t_1))^{\tilde z_1} \cdot exp( \tilde \lambda_0(\tilde t_1-t_0)) \cdot exp( \tilde \lambda_1(t_2- \tilde t_1))}{(\lambda_0 (t_1 - t_0))^{z_0} \cdot(\lambda_1(t_2-t_1))^{z_1} \cdot exp(\lambda_0(t_1-t_0)) \cdot exp(\lambda_1(t_2-t_1))} \cdot \frac{z_0! z_1!}{\tilde z_0! \tilde z_1 !}
+$$
+And 
+$$
+\frac{Q( \lambda_0, \lambda_1,  t_1 |\tilde \lambda_0, \tilde \lambda_1, \tilde t_1) }{Q(\tilde \lambda_0, \tilde \lambda_1, \tilde t_1 |\lambda_0, \lambda_1, t_1)} =
+\frac{f(\lambda_0 ,\lambda_1|z, \beta,  t) \cdot Q(t_1|\tilde t_1)}{f(\tilde \lambda_0 ,\tilde \lambda_1 | \tilde z, \beta, \tilde t) \cdot Q(\tilde t_1| t_1)} = 
+\frac{f(\lambda_0|z, \beta)  \cdot f(\lambda_1 | z, \beta)}{f(\tilde \lambda_0| z,  \beta) \cdot f( \tilde \lambda_1| z, \beta)} =  
+\frac{\lambda_0^{z_0 +1} \lambda^{z_1 +1} exp(\lambda_0((t_1-t_0) + 1/\beta) exp(\lambda_0((t_2-t_1) + 1/\beta) }{\tilde \lambda_0^{\tilde z_0 +1} \tilde \lambda^{ \tilde z_1 +1} exp(\tilde \lambda_0(( \tilde t_1-t_0) + 1/\beta) exp(\tilde \lambda_0((t_2-\tilde t_1) + 1/\beta) }
+$$
+
