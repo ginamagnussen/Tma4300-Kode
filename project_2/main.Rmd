@@ -8,15 +8,15 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r child="ProblemA1-4.rmd"}
+```{r child="ProblemA1-4.Rmd"}
 ```
 
 
-```{r child="ProblemA5.rmd"}
+```{r child="ProblemA5.Rmd"}
 ```
 
-```{r child="ProblemA8.rmd"}
+```{r child="ProblemA8.Rmd"}
 ```
 
-```{r child="ProblemB.rmd"}
+```{r child="ProblemB.Rmd"}
 ```

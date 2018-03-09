@@ -6,6 +6,11 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+```{r, include=FALSE}
+library(invgamma)
+```
+
+
 * Problem B: Bayesian Image Reconstruction 
 
 We study how the ising model can be used as a prior distribution in an image reconstruction setting. We let $y = (y_{ij}, i = 1,\ldots,89, j=1,\ldots,85)$ be the observed "image.txt". We assume this to be a noisy version of an unobserved image $x = (x_{ij}, i = 1,\ldots,89, j=1,\ldots,85)$ with $x_{ij}\in\{0,1\}$. Our goal in this problem is to use the observed $y$ to estimate $x$. We assume the elements in $y$ to be conditionally independent given $x$ and 
@@ -60,14 +65,28 @@ f(\varphi) \propto \begin{cases}
 \frac{(\mu_1-\mu_0)^3}{\sigma_0^2\sigma_1^3}\exp\{-\Big[\frac{\mu_1-\mu_0}{\sqrt{\sigma_0\sigma_1}}+\sqrt{\frac{\sigma_0}{\sigma_1}}\Big]\} \ &\text{for} \ \sigma_0 > \sigma_1 \ \text{and} \ \mu_0 < \mu_1 
 \end{cases}
 $$
-We must use the transformation formula with 4 variables. We thus have 
-$$
-f(\varphi) = f(m_0,s,\tau,\theta) = f(m_0)f(s)f(\tau)f(\theta)\cdot |J|
-$$
+We must use the transformation formula with 4 variables. We find that 
+\[
+\begin{aligned}
+m_0 &= w_1(\mu_0,\mu_1,\sigma_0,\sigma_1) = \mu_0 \\
+s &= w_2(\mu_0,\mu_1,\sigma_0,\sigma_1) = \sqrt{\sigma_0\sigma_1} \\
+\tau &= w_3(\mu_0,\mu_1,\sigma_0,\sigma_1) = \sqrt{\frac{\sigma_0}{\sigma_1}} \\
+\theta &= w_4(\mu_0,\mu_1,\sigma_0,\sigma_1) = \frac{\mu_1-\mu_0}{\sqrt{\sigma_0\sigma_1}}
+\end{aligned}
+\]
+
+We thus have 
+\[
+\begin{aligned}
+f(\varphi) = f(\mu_0,\mu_1,\sigma_0,\sigma_1) = g(w_1(\varphi),w_2(\varphi),w_3(\varphi),w_4(\varphi))\cdot |J| \\
+f(\varphi) = g(m_0,s,\tau,\theta)\cdot |J| \\
+f(\varphi) = g_M(m_0)g_S(s)g_{\tau}(\tau)g_{\Theta}(\theta)\cdot |J| \\
+\end{aligned}
+\]
 because of independence, where $J$ is the $4\times4$ Jacobi determinant shown in \eqref{jacobi}. Since $m_0$ and $s$ are assumed to be improper uniform distributed, we have that
 
 $$
-f(\varphi) \propto f(\tau)f(\theta)\cdot |J|
+f(\varphi) \propto g_\tau\Big(\sqrt{\frac{\sigma_0}{\sigma_1}}\Big)g_\Theta\Big(\frac{\mu_1-\mu_0}{\sqrt{\sigma_0\sigma_1}}\Big)\cdot |J|
 $$
 
 The Jacobi determinant is given by
@@ -91,7 +110,9 @@ J = \begin{vmatrix}
 -\frac{1}{\sqrt{\sigma_0\sigma_1}} & \frac{1}{\sqrt{\sigma_0\sigma_1}} & -\frac{(\mu_1-\mu_0)}{2\sqrt{\sigma_0^3\sigma_1}} & -\frac{(\mu_1-\mu_0)}{2\sqrt{\sigma_0\sigma_1^3}}
 \end{vmatrix}
 $$
+
 This can now be reduced to 
+
 $$
 J = 1 \cdot \begin{vmatrix}
 0 & \frac{1}{2}\sqrt{\frac{\sigma_1}{\sigma_0}} & \frac{1}{2}\sqrt{\frac{\sigma_0}{\sigma_1}} \\
@@ -103,9 +124,11 @@ J = 1 \cdot \begin{vmatrix}
 \end{vmatrix} = -\frac{1}{2\sqrt{\sigma_0\sigma_1^3}}
 $$
 
-Hence, we get 
-\begin{align}
-f(\varphi) \propto f(\tau)f(\theta)\cdot |J|
+Hence, we get
+
+\[
+\begin{aligned}
+f(\varphi) \propto g_\tau\Big(\sqrt{\frac{\sigma_0}{\sigma_1}}\Big)g_\Theta\Big(\frac{\mu_1-\mu_0}{\sqrt{\sigma_0\sigma_1}}\Big)\cdot |J|
 \propto \begin{cases}
 \frac{1}{2}\frac{\sigma_1}{\sigma_0}e^{-\Big(\sqrt{\frac{\sigma_1}{\sigma_0}}-1\Big)}\cdot\Big(\frac{\mu_1-\mu_0}{\sqrt{\sigma_0\sigma_1}}\Big)^3 e^{-\frac{\mu_1-\mu_0}{\sqrt{\sigma_0\sigma_1}}} \cdot \frac{1}{2\sqrt{\sigma_0\sigma_1^3}} \ &\text{for} \ \sigma_0 \leq \sigma_1 \ \text{and} \ \mu_0 < \mu_1 \\ \nonumber
 \frac{1}{2}e^{-\Big(\sqrt{\frac{\sigma_0}{\sigma_1}}-1\Big)}\cdot \Big(\frac{\mu_1-\mu_0}{\sqrt{\sigma_0\sigma_1}}\Big)^3 e^{-\frac{\mu_1-\mu_0}{\sqrt{\sigma_0\sigma_1}}}\cdot \frac{1}{2\sqrt{\sigma_0\sigma_1^3}} \ &\text{for} \ \sigma_0 > \sigma_1 \ \text{and} \ \mu_0 < \mu_1 
@@ -115,53 +138,131 @@ f(\varphi) \propto \begin{cases}
 \frac{(\mu_1-\mu_0)^3}{\sigma_0^2\sigma_1^3}\exp\{-\Big[\frac{\mu_1-\mu_0}{\sqrt{\sigma_0\sigma_1}}+\sqrt{\frac{\sigma_0}{\sigma_1}}\Big]\} \ &\text{for} \ \sigma_0 > \sigma_1 \ \text{and} \ \mu_0 < \mu_1 
 \end{cases}
 \label{taudist}
-\end{align}
+\end{aligned}
+\]
 
 which is what we wanted to show.
 
 3.
 We find (up to proportionality) a formula for the posterior distribution $f(x,\varphi|y)$. We thus have 
 $$
-f(x,\varphi|y) \propto f(y|x,\varphi)\cdot f(x,\varphi) \propto f(y|x) \cdot f(x)\cdot f(\varphi)
+f(x,\varphi|y) \propto f(x,\varphi,y) \propto f(y|x,\varphi)\cdot f(x,\varphi) \propto f(y|x) \cdot f(x,\varphi) \propto f(y|x) \cdot f(x)\cdot f(\varphi)
 $$
 All of these distributions are known to us from equations \eqref{normaldist}, \eqref{xdist} and \eqref{taudist}.
 
-\begin{align*}
-f(x,\varphi|y) \propto &\frac{1}{\sqrt{2\pi}\sigma_{x_{ij}}} e^{-\frac{1}{2\sigma_{x_{ij}}^2}\Big(y_{ij}-\mu_{x_{ij}}\Big)^2} \cdot \exp\Big\{\beta \sum_{(i,j)\sim(k,l)} I(x_{ij} = x_{kl}) \Big\} \\ \cdot &\begin{cases}
-\frac{(\mu_1-\mu_0)^3}{\sigma_0^3\sigma_1^2}\exp\{-\Big[\frac{\mu_1-\mu_0}{\sqrt{\sigma_0\sigma_1}}+\sqrt{\frac{\sigma_1}{\sigma_0}}\Big]\} \ &\text{for} \ \sigma_0 \leq \sigma_1 \ \text{and} \ \mu_0 < \mu_1 \\
-\frac{(\mu_1-\mu_0)^3}{\sigma_0^2\sigma_1^3}\exp\{-\Big[\frac{\mu_1-\mu_0}{\sqrt{\sigma_0\sigma_1}}+\sqrt{\frac{\sigma_0}{\sigma_1}}\Big]\} \ &\text{for} \ \sigma_0 > \sigma_1 \ \text{and} \ \mu_0 < \mu_1 
+$$
+f(x,\varphi|y) \propto \prod_{i,j} f(y_{ij}|x) \cdot f(x)\cdot f(\varphi) \propto \\
+\Bigg(\prod_{i,j} \frac{1}{\sigma_{x_{ij}}} e^{-\frac{1}{2\sigma_{x_{ij}}^2}\Big(y_{ij}-\mu_{x_{ij}}\Big)^2}\Bigg) \cdot \exp\Big\{\beta \sum_{(i,j)\sim(k,l)} I(x_{ij} = x_{kl}) \Big\} \\ \cdot \begin{cases}
+\frac{(\mu_1-\mu_0)^3}{\sigma_0^3\sigma_1^2}\exp\{-\Big[\frac{\mu_1-\mu_0}{\sqrt{\sigma_0\sigma_1}}+\sqrt{\frac{\sigma_1}{\sigma_0}}\Big]\} \ \text{for} \ \sigma_0 \leq \sigma_1 \ \text{and} \ \mu_0 < \mu_1 \\
+\frac{(\mu_1-\mu_0)^3}{\sigma_0^2\sigma_1^3}\exp\{-\Big[\frac{\mu_1-\mu_0}{\sqrt{\sigma_0\sigma_1}}+\sqrt{\frac{\sigma_0}{\sigma_1}}\Big]\} \ \text{for} \ \sigma_0 > \sigma_1 \ \text{and} \ \mu_0 < \mu_1 
 \end{cases}
-\end{align*}
+$$
+
+\[
+\begin{aligned}
+\frac{f(\tilde{x},\varphi|y)}{f(x,\varphi|y)} &= \frac{\frac{1}{\sqrt{2\pi}\sigma_{\tilde{x}_{ij}}} e^{-\frac{1}{2\sigma_{\tilde{x}_{ij}}^2}\left(y_{ij}-\mu_{\tilde{x}_{ij}}\right)^2} \cdot \exp\{\beta \sum_{(i,j)\sim(k,l)} I(\tilde{x}_{ij} = x_{kl}) \}}{\frac{1}{\sqrt{2\pi}\sigma_{x_{ij}}} e^{-\frac{1}{2\sigma_{x_{ij}}^2}\left(y_{ij}-\mu_{x_{ij}}\right)^2} \cdot \exp\{\beta \sum_{(i,j)\sim(k,l)} I(x_{ij} = x_{kl}) \} } \\
+&= \frac{\sigma_{x_{ij}}}{\sigma_{\tilde{x}_{ij}}} e^{-\frac{1}{2\sigma_{\tilde{x}_{ij}}^2}\left(y_{ij}-\mu_{\tilde{x}_{ij}}\right)^2 + \frac{1}{2\sigma_{x_{ij}}^2}\left(y_{ij}-\mu_{x_{ij}}\right)^2} \cdot \exp\left\{\beta \sum_{(i,j)\sim(k,l)}\left( I(\tilde{x}_{ij} = x_{kl}) - I(x_{ij} = x_{kl})\right)\right\}
+\end{aligned}
+\]
+
+\[
+\begin{aligned}
+s \sim Uniform(-\infty,\infty) \\
+m_0 \sim Uniform(0,\infty) \\
+\theta \sim Gamma(4,1) \\
+\tau (next \ slide)
+\end{aligned}
+\]
 
 4. 
+
+c) 
+We propose a potential new value for $\sigma_0$ by simulating $\sigma_0^2$ from the resulting conditional for $\sigma_0^2$. We assume an inverse gamma prior for $\sigma_0^2$ with parameters $a_0$ and $b_0$. We thus have
+$$
+f(\sigma_0^2|x,y,\mu_0,\mu_1,\sigma_1) \propto f(y|x) f(\sigma_0^2) \\
+\propto \prod_{x_{ij} = 0} \Big(\frac{1}{\sigma_{x_{ij}}}e^{-\frac{1}{2\sigma_{x_{ij}}^2}(y_{ij}-\mu_{x_{ij}})^2}\Big) \cdot \frac{1}{(\sigma_0^2)^{a_0+1}}e^{-\frac{b_0}{\sigma_0^2}} \\
+\propto \Big(\frac{1}{\sigma_0^2}\Big)^{N_0/2}e^{-\sum_{i=1}^{N_0}\frac{1}{2\sigma_0^2}(y_{ij}-\mu_0)^2}\cdot \frac{1}{(\sigma_0^2)^{a_0+1}}e^{-\frac{b_0}{\sigma_0^2}} \\ 
+\propto \frac{1}{(\sigma_0^2)^{N_0/2+a_0+1}} e^{-\frac{1}{\sigma_0^2}\Big(\sum_{i=1}^{N_0} \frac{(y_{ij}-\mu_0)^2}{2}+b_0\Big)} \\ \sim InvGamma\Big(a_0+N_0/2,b_0+\sum_{i=1}^{N_0} \frac{(y_{ij}-\mu_0)^2}{2}\Big)
+$$
+where $N_0$ is the number of nodes that satisfy $x_{ij} = 0$. Similarly for $\sigma_1^2$, we find that 
+$$
+f(\sigma_1^2|x,y,\mu_0,\mu_1,\sigma_0) \sim InvGamma\Big(a_1 + N_1/2, b_1 + \sum_{i=1}^{N_1} \frac{(y_{ij}-\mu_1)^2}{2}\Big)
+$$
+where we assume an inverse gamma prior for $\sigma_1^2$ with parameters $a_1$ and $b_1$.
+
+Acceptance probability for $\sigma_0^2$.
+
+
+
 We define and implement a Metropolis-Hastings algorithm for simulating from $f(x,\varphi|y)$
 ```{r}
-fratio = function(x,i,j,beta) {
-  counter = 0
-  right = x[i,j] == x[i+1,j]
-  if (length(right) == 0) {
-    counter = counter + 1
-    right = 0
+x_prior = function(x) {
+  nrows = dim(x)[1]
+  ncolumns = dim(x)[2]
+  indicator_vec = matrix(c(0), nrow = nrows, ncol = ncolumns)
+  for (i in 1:nrows) {
+    for(j in 1:ncolumns) {
+      indicator_vec[i,j] = indicator_x(x,i,j)
+    }
   }
-  left = x[i,j] == x[i-1,j]
-  if (length(left) == 0) {
-    counter = counter + 1
-    left = 0
+  return(sum(indicator_vec))
+}
+
+indicator_x = function(x,i,j) {
+  nrows = dim(x)[1]
+  ncolumns = dim(x)[2]
+  if (i > 1 && i < nrows && j > 1 && j < ncolumns) {
+    right = x[i,j] == x[i+1,j]
+    left = x[i,j] == x[i-1,j]
+    up = x[i,j] == x[i,j-1]
+    down = x[i,j] == x[i,j+1]
+    indicator = right + left + up + down
   }
-  up = x[i,j] == x[i,j-1]
-  if (length(up) == 0) {
-    counter = counter + 1
-    up = 0
+  else if (i == 1 && j == 1) {
+    right = x[i,j] == x[i+1,j]
+    down = x[i,j] == x[i,j+1]
+    indicator = right + down
   }
-  down = x[i,j] == x[i,j+1]
-  if (length(down) == 0) {
-    counter = counter + 1
-    down = 0
+  else if (i == 1 && j == ncolumns) {
+    right = x[i,j] == x[i+1,j]
+    up = x[i,j] == x[i,j-1]
+    indicator = right + up
   }
-  
-indicator = right + left + up + down
-fratio = exp(beta*(4-counter-indicator))
-return (fratio)
+  else if (i == nrows && j == 1) {
+    left = x[i,j] == x[i-1,j]
+    down = x[i,j] == x[i,j+1]
+    indicator = left + down
+  }
+  else if (i == nrows && j == ncolumns) {
+    left = x[i,j] == x[i-1,j]
+    up = x[i,j] == x[i,j-1]
+    indicator = left + up
+  }
+  else if (i == 1) {
+    right = x[i,j] == x[i+1,j]
+    up = x[i,j] == x[i,j-1]
+    down = x[i,j] == x[i,j+1]
+    indicator = right + up + down
+  }
+  else if (i == nrows) {
+    left = x[i,j] == x[i-1,j]
+    up = x[i,j] == x[i,j-1]
+    down = x[i,j] == x[i,j+1]
+    indicator = left + up + down
+  }
+  else if (j == 1) {
+    right = x[i,j] == x[i+1,j]
+    left = x[i,j] == x[i-1,j]
+    down = x[i,j] == x[i,j+1]
+    indicator = right + left + down
+  }
+  else if (j == ncolumns) {
+    right = x[i,j] == x[i+1,j]
+    left = x[i,j] == x[i-1,j]
+    up = x[i,j] == x[i,j-1]
+    indicator = right + left + up
+  }
+return(indicator)
 }
 ```
 
@@ -171,15 +272,126 @@ return (fratio)
 y = read.table("./image.txt", header = FALSE, sep = " ")
 nrows = dim(y)[1]
 ncolumns = dim(y)[2]
+sigma_0 = 0.5
+sigma_1 = 0.5
+mu_0 = -1
+mu_1 = 2
+beta = 1
+
 x = matrix(rbinom(nrows * ncolumns, 1, 0.5), ncol = ncolumns, nrow = nrows)
 i = ceiling(nrows*runif(1))
 j = ceiling(ncolumns*runif(1))
 x_prop = 1 - x[i,j]
+x_new = x
+x_new[i,j] = x_prop
+I = x_prior(x)
+I_prop = x_prior(x_new)
 
-fratio(xprop,i,j,beta)
+
+ising = exp(beta*(I_prop-I))
+if (x[i,j] == 0) {
+  normal = sigma_0/sigma_1 * exp(-1/(2*sigma_1^2)*(y[i,j]-mu_1)^2 + 1/(2*sigma_0)*(y[i,j]-mu_0)^2)
+}
+if(x[i,j] == 1){
+  normal = sigma_1/sigma_0 * exp(-1/(2*sigma_0^2)*(y[i,j]-mu_0)^2 + 1/(2*sigma_1)*(y[i,j]-mu_1)^2)
+}
+fratio = normal * ising
 alpha = min(1,fratio)
-
-
 u = runif(1)
+if (u < alpha) {
+  x[i,j] = x_prop
+}
+
+fcount <- function(x, y, bool){
+  nrows <- dim(x)[1]
+  ncols <- dim(x)[2]
+  count <- 0
+  yval = 0
+  for (i in 1:nrows){
+    for(j in 1:ncols){
+      if (x[i,j] == bool){
+        count <- count + 1
+        yval[count] <- y[i,j]
+      }
+    }
+  }
+  ysum <- sum(yval)
+  res <- data.frame(count, ysum)
+  return(res)
+}
+
+  
+res <- fcount(x,y,0)
+N_0 <- res$count
+ysum <- res$ysum
+            
+            
+muzero <- function(N0, ysum, sigma_0){
+  mu_0 <- rnorm(1, ysum/N_0, (sigma_0^2)/N_0)
+  return(mu_0)
+}
+
+res <- fcount(x,y,1)
+N_1 <- res$count
+ysum <- res$ysum
+            
+muone <- function(N1, ysum, sigma_1){
+  mu_1 <- rnorm(1, ysum/N_1, (sigma_1^2)/N_1)
+  return(mu_1)
+}
+```
+
+4. 
+c)
+We want to find the acceptance probability for $\sigma_0$. Since we know that the full conditional for $\sigma_0^2$ is inverse gamma distributed, we can use the transformation formula to determine the full conditional distribution for $\sigma_0$. We denote this as $Q(\sigma_0|x,y,\varphi^{-1})$. Then $w(\sigma_0) = \sigma_0^2$
+$$
+Q(\sigma_0|x,y,\varphi^{-1}) = f(w(\sigma_0)|x,y,\varphi^{-1}) \cdot |w'(\sigma_0)| \\
+Q(\sigma_0|x,y,\varphi^{-1}) = ... \\
+Q(\sigma_0|x,y,\varphi^{-1}) \propto \frac{1}{(\sigma_0)^{2a_0 + N_0 + 1}}\cdot \exp{\Big(-\frac{b_0 + \sum_{i=1}^{N_0}\frac{(y_{ij}-\mu_0)^2}{2}}{\sigma_0^2}\Big)}
+$$
+The acceptance probability is given by
+$$
+\alpha = \min\Big(1,\frac{Q(\sigma_0|x,y,\varphi^{-1})}{Q(\tilde{\sigma}_0|x,y,\varphi^{-1})}\frac{f(\tilde{\sigma}_0|x,y,\varphi^{-1})}{f({\sigma}_0|x,y,\varphi^{-1})}\Big)
+$$
+After laboursome calculations we define
+$$
+\Omega = \Big(\frac{\tilde{\sigma}_0}{\sigma_0}\Big)^{2a_0 + 1}\cdot\exp\Big\{b_0\cdot\Big(\frac{1}{\tilde{\sigma}_0^2}-\frac{1}{\sigma_0^2}\Big) -\frac{\mu_1-\mu_0}{\sqrt{\tilde{\sigma}_0\sigma_1}} + \frac{\mu_1-\mu_0}{\sqrt{\sigma_0\sigma_1}}\Big\}
+$$
+and find that 
+
+$$
+\frac{Q(\sigma_0|x,y,\varphi^{-1})}{Q(\tilde{\sigma}_0|x,y,\varphi^{-1})}\frac{f(\tilde{\sigma}_0|x,y,\varphi^{-1})}{f({\sigma}_0|x,y,\varphi^{-1})} =  \Omega \cdot \begin{cases} \Big(\frac{\sigma_0}{\tilde{\sigma}_0}\Big)^3 \cdot \exp\Big(-\sqrt{\frac{\sigma_1}{\tilde{\sigma}_0}}+\sqrt{\frac{\sigma_1}{\sigma_0}}\Big) \ \text{for} \ \sigma_0 < \sigma_1 \ \text{and} \ \tilde{\sigma}_0 < \sigma_1 \\
+\frac{\sigma_0^3}{\tilde{\sigma}_0^2\sigma_1} \cdot \exp\Big(-\sqrt{\frac{\tilde{\sigma}_0}{\sigma_1}}+\sqrt{\frac{\sigma_1}{\sigma_0}}\Big) \ \text{for} \ \sigma_0 < \sigma_1 \ \text{and} \ \tilde{\sigma}_0 > \sigma_1 \\
+\Big(\frac{\sigma_0}{\tilde{\sigma}_0}\Big)^2 \cdot \exp\Big(-\sqrt{\frac{\tilde{\sigma}_0}{\sigma_1}} + \sqrt{\frac{\sigma_0}{\sigma_1}}\Big) \ \text{for} \ \sigma_0 > \sigma_1 \ \text{and} \ \tilde{\sigma}_0 > \sigma_1 \\
+\frac{\sigma_0^2\sigma_1}{\tilde{\sigma}_0^3} \cdot \exp\Big(-\sqrt{\frac{\sigma_1}{\tilde{\sigma}_0}} + \sqrt{\frac{\sigma_0}{\sigma_1}}\Big) \ \text{for} \ \sigma_0 > \sigma_1 \ \text{and} \ \tilde{\sigma}_0 < \sigma_1
+\end{cases}
+$$
+
+We implement on log-scale
+
+```{r}
+#Acceptance probability for sigma_0
+a_0 = 2.5
+b_0 = 6
+sigma_0squared_prop = rinvgamma(1, shape = a_0 + N_0/2, scale = b_0 + sum((y[x==0]-mu_0)^2)/2)
+sigma_0_prop = sqrt(sigma_0squared_prop)
+logomega = (2*a_0 + 1)*(log(sigma_0_prop) - log(sigma_0)) + b_0 * (1/sigma_0squared_prop - 1/(sigma_0)^2) - (mu_1-mu_0)/(sqrt(sigma_0_prop*sigma_1)) + (mu_1 - mu_0)/(sqrt(sigma_0*sigma_1))
+if (sigma_0 <= sigma_1 && sigma_0_prop < sigma_1) {
+  case = 3*(log(sigma_0)-log(sigma_0_prop)) - sqrt(sigma_1/sigma_0_prop) + sqrt(sigma_1/sigma_0)
+} else if (sigma_0 <= sigma_1 && sigma_0_prop > sigma_1) {
+  case = 3*log(sigma_0) - 2*log(sigma_0_prop) - log(sigma_1) - sqrt(sigma_0_prop/sigma_1) + sqrt(sigma_1/sigma_0)
+} else if (sigma_0 > sigma_1 && sigma_0_prop > sigma_1) {
+  case = 2*(log(sigma_0)-sigma_0_prop) -sqrt(sigma_0_prop/sigma_1) + sqrt(sigma_0/sigma_1)
+} else if (sigma_0 > sigma_1 && sigma_0_prop < sigma_1) {
+  case = 2*log(sigma_0) + log(sigma_1) - 3*log(sigma_0_prop) - sqrt(sigma_1/sigma_0_prop) + sqrt(sigma_0/sigma_1)
+}
+qfratio = logomega*case
+alpha = min(0,qfratio)
+u = log(runif(1))
+if (u < alpha) {
+  sigma_0_prop = sigma_0
+}
+
+
 ```
 

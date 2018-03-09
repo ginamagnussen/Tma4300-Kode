@@ -15,6 +15,24 @@ library(coda)
 library(ggplot2)
 ```
 
+
+$$
+\begin{aligned}
+\frac{f(\tilde{x},\varphi|y)}{f(x,\varphi|y)} &= \frac{\frac{1}{\sqrt{2\pi}\sigma_{\tilde{x}_{ij}}} e^{-\frac{1}{2\sigma_{\tilde{x}_{ij}}^2}\left(y_{ij}-\mu_{\tilde{x}_{ij}}\right)^2} \cdot \exp\{\beta \sum_{(i,j)\sim(k,l)} I(\tilde{x}_{ij} = x_{kl}) \}}{\frac{1}{\sqrt{2\pi}\sigma_{x_{ij}}} e^{-\frac{1}{2\sigma_{x_{ij}}^2}\left(y_{ij}-\mu_{x_{ij}}\right)^2} \cdot \exp\{\beta \sum_{(i,j)\sim(k,l)} I(x_{ij} = x_{kl}) \} } \\
+&= \frac{\sigma_{x_{ij}}}{\sigma_{\tilde{x}_{ij}}} e^{-\frac{1}{2\sigma_{\tilde{x}_{ij}}^2}\left(y_{ij}-\mu_{\tilde{x}_{ij}}\right)^2 + \frac{1}{2\sigma_{x_{ij}}^2}\left(y_{ij}-\mu_{x_{ij}}\right)^2} \cdot \exp\left\{\beta \sum_{(i,j)\sim(k,l)}\left( I(\tilde{x}_{ij} = x_{kl}) - I(x_{ij} = x_{kl})\right)\right\}
+\end{aligned}
+$$
+
+
+$$
+\begin{aligned}
+&= \frac{\sigma_{x_{ij}}}{\sigma_{\tilde{x}_{ij}}} e^{-\frac{1}{2\sigma_{\tilde{x}_{ij}}^2}\left(y_{ij}-\mu_{\tilde{x}_{ij}}\right)^2 + \frac{1}{2\sigma_{x_{ij}}^2}\left(y_{ij}-\mu_{x_{ij}}\right)^2} \cdot \exp\left\{\beta \sum_{(i,j)\sim(k,l)}\left( I(\tilde{x}_{ij} = x_{kl}) - I(x_{ij} = x_{kl})\right)\right\}
+\end{aligned}
+$$
+
+
+
+
 ```{r, echo=FALSE}
 divide_data = function(t) {
   coalEvents = coal[2:190,]

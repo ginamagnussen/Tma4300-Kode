@@ -3,3 +3,4 @@ unnamed-chunk-13	divide_data	coalEvents	coal	indicator	t	index	sum	return
 unnamed-chunk-14	n	t_0	coal	t_2	lambda0	rep	lambda1	beta	t	sigma	N0	N1	index	divide_data	counterAccRate	fraction_vec	i	t_prop	rnorm	N0_prop	N1_prop	t_out_of_range	logterm1	log	logterm2	logterm3	logterm4	lfactorial	logterm5	fraction	alpha	min	u	runif	rinvgamma	rgamma	iter	seq	plot	ggplot	as.data.frame	aes	geom_path	mean
 unnamed-chunk-15	opts_chunk	set
 unnamed-chunk-16	opts_chunk	set
+unnamed-chunk-17	fratio	counter	right	x	i	j	length	left	up	down	indicator	exp	beta	return
