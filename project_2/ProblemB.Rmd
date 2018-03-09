@@ -196,6 +196,7 @@ Acceptance probability for $\sigma_0^2$.
 
 We define and implement a Metropolis-Hastings algorithm for simulating from $f(x,\varphi|y)$
 ```{r}
+# Counts number of neighbours
 x_prior = function(x) {
   nrows = dim(x)[1]
   ncolumns = dim(x)[2]
@@ -208,6 +209,7 @@ x_prior = function(x) {
   return(sum(indicator_vec))
 }
 
+# Help function for x_prior
 indicator_x = function(x,i,j) {
   nrows = dim(x)[1]
   ncolumns = dim(x)[2]
@@ -269,19 +271,8 @@ return(indicator)
 
 
 ```{r}
-y = read.table("./image.txt", header = FALSE, sep = " ")
-nrows = dim(y)[1]
-ncolumns = dim(y)[2]
-sigma_0 = 0.5
-sigma_1 = 0.5
-mu_0 = -1
-mu_1 = 2
-beta = 1
-
-x = matrix(rbinom(nrows * ncolumns, 1, 0.5), ncol = ncolumns, nrow = nrows)
-image(z = x)
-
-x_update <- function(times, x, mu_0, mu_1, sigma_0, sigma_1,beta){
+# Update x by flipping values
+x_update <- function(times, x, mu_0, mu_1, sigma_0, sigma_1, beta){
   for (it in 1:times){
     i = ceiling(nrows*runif(1))
     j = ceiling(ncolumns*runif(1))
@@ -308,9 +299,9 @@ x_update <- function(times, x, mu_0, mu_1, sigma_0, sigma_1,beta){
   return(x)
 }
 
-x_upd <- x_update(1000, x, mu_0, mu_1, sigma_0, sigma_1, beta)
-image(z = x_upd)
-image(z = x)
+#x_upd <- x_update(1000, x, mu_0, mu_1, sigma_0, sigma_1, beta)
+#image(z = x_upd)
+#image(z = x)
 ```
 
 
@@ -336,10 +327,7 @@ fcount <- function(x, y, bool){
   return(res)
 }
 # b) For mu_0
-res0 <- fcount(x,y,0)
-N_0 <- res0$count
-ysum0 <- res0$ysum
-mu0_old <- mu_0
+
 
 ## Acceptance probability
 # ---- Utilities --- #
@@ -375,20 +363,13 @@ muzero <- function(N_0, ysum0, sigma_0, mu0_old){
   if (u < acc){
     res <- mu0_new
   } else {
-    res <- mu0_new
+    res <- mu0_old
   }
   return(res)
 }
 
-test0 <- muzero(N_0, ysum0, sigma_0, mu0_old)
-test0
-
-
-# For mu_1
-res <- fcount(x,y,1)
-N_1 <- res$count
-ysum1 <- res$ysum
-mu1_old <- mu_1
+# test0 <- muzero(N_0, ysum0, sigma_0, mu0_old)
+# test0
 
 muone <- function(N_1, ysum1, sigma_1, mu1_old){
   # Propose random new mu0
@@ -405,14 +386,48 @@ muone <- function(N_1, ysum1, sigma_1, mu1_old){
   if (u < acc){
     res <- mu1_new
   } else {
-    res <- mu1_new
+    res <- mu1_old
   }
   return(res)
 }
 
-test1 <- muone(N_1, ysum1, sigma_1, mu1_old)
-test1
+# test1 <- muone(N_1, ysum1, sigma_1, mu1_old)
+# test1
 ```
+
+### Task 4 b)
+#### Proposal distribution and acceptance probability
+We want to update $\mu_0$ and thus we consider only $\mu_0$ as a parameter. The acceptance probability is given by
+
+\[
+\begin{aligned}
+\alpha &= \min\left\{1, \frac{f(x,\bar{\varphi}|y)}{f(x,\varphi|y)}\cdot \frac{Q(\mu_0|...)}{Q(\bar{\mu}_0|...)}\right\} \\
+\alpha &= \min\left\{1, \frac{f(x,\bar{\mu}_0,\mu_1, \sigma_0, \sigma_1|y)}{f(x,\mu_0,\mu_1, \sigma_0, \sigma_1|y)}\cdot \frac{Q(\mu_0|...)}{Q(\bar{\mu}_0|...)}\right\}
+\end{aligned}
+\]
+
+where the bar over the $\varphi$ indicates an updated value for the corresponding parameter.
+
+Now, find the full conditional distribution for $\mu_0$
+
+\[
+\begin{aligned}
+Q(\mu_0|\mu_1, \sigma_0, \sigma_1, x, y) &\propto \prod_{x_{ij}=0} f(x, \varphi|y) = \frac{1}{\sqrt{2\pi}\sigma_{x_{ij}}}\cdot e^{-\frac{1}{2\sigma_{x_{ij}}}\left(y_{ij}-y_{x_{ij}}\right)^2}\cdot \text{const} \\
+&\propto \prod_{x_{ij}=0} f(x, \varphi|y) = \frac{1}{\sqrt{2\pi}\sigma_{x_{ij}}}\cdot e^{-\frac{1}{2\sigma_{x_{ij}}}\left(y_{ij}-y_{x_{ij}}\right)^2}
+\end{aligned}
+\]
+
+where "const" is the rest of the terms in the expression, but not depending on $x_{ij}$. Then multiply out the exponent, let $N_=$, be the number of $x_{ij}$s equal to zero, consider relevant terms only and complete the square to obtain
+
+\[
+Q(\mu_0|...) \propto \exp\left(-\frac{N_0}{2\sigma_0^2}\left[\mu_0-\frac{1}{N_0}\sum_{x_{ij}=0}y_{ij}\right]^2\right) \sim N\left(\frac{1}{N_0}\sum_{x_{ij}=0}y_{ij}, \frac{\sigma_0^2}{N_0}\right)
+\]
+
+Further we need
+\[
+f(x, \bar{\varphi}|y) = f(x, \bar{\mu}_0, \mu_1, \sigma_0, \sigma_1|y) \propto f(\bar{\varphi})\cdot f(x) \cdot( f(y|x,\bar{\varphi}))
+
+\]
 
 4. 
 c)
@@ -444,60 +459,27 @@ We implement on log-scale
 
 ```{r}
 #Acceptance probability for sigma_0
-a_0 = 2.5
-b_0 = 6
+# a_0 = 2.5
+# b_0 = 6
 
-sigmazero <- function(a_0, b_0, mu_0, mu_1, sigma_0, sigma_1){
+sigmazero <- function(a_0, b_0, N_0, mu_0, mu_1, sigma_0, sigma_1){
   sigma_0squared_prop = rinvgamma(1, shape = a_0 + N_0/2, scale = b_0 + sum((y[x==0]-mu_0)^2)/2)
   sigma_0_prop = sqrt(sigma_0squared_prop)
-  logomega = (2*a_0 + 1)*(log(sigma_0_prop) - log(sigma_0)) + b_0 * (1/sigma_0squared_prop - 1/(sigma_0)^2) - (mu_1-mu_0)/(sqrt(sigma_0_prop*sigma_1)) + (mu_1 - mu_0)/(sqrt(sigma_0*sigma_1))
+  logomega_0 = (2*a_0 + 1)*(log(sigma_0_prop) - log(sigma_0)) + b_0 * (1/sigma_0squared_prop - 1/(sigma_0)^2) - (mu_1-mu_0)/(sqrt(sigma_0_prop*sigma_1)) + (mu_1 - mu_0)/(sqrt(sigma_0*sigma_1))
   if (sigma_0 <= sigma_1 && sigma_0_prop < sigma_1) {
-    case = 3*(log(sigma_0)-log(sigma_0_prop)) - sqrt(sigma_1/sigma_0_prop) + sqrt(sigma_1/sigma_0)
+    case_0 = 3*(log(sigma_0)-log(sigma_0_prop)) - sqrt(sigma_1/sigma_0_prop) + sqrt(sigma_1/sigma_0)
   } else if (sigma_0 <= sigma_1 && sigma_0_prop > sigma_1) {
-    case = 3*log(sigma_0) - 2*log(sigma_0_prop) - log(sigma_1) - sqrt(sigma_0_prop/sigma_1) + sqrt(sigma_1/sigma_0)
+    case_0 = 3*log(sigma_0) - 2*log(sigma_0_prop) - log(sigma_1) - sqrt(sigma_0_prop/sigma_1) + sqrt(sigma_1/sigma_0)
   } else if (sigma_0 > sigma_1 && sigma_0_prop > sigma_1) {
-    case = 2*(log(sigma_0)-sigma_0_prop) -sqrt(sigma_0_prop/sigma_1) + sqrt(sigma_0/sigma_1)
+    case_0 = 2*(log(sigma_0)-sigma_0_prop) -sqrt(sigma_0_prop/sigma_1) + sqrt(sigma_0/sigma_1)
   } else if (sigma_0 > sigma_1 && sigma_0_prop < sigma_1) {
-    case = 2*log(sigma_0) + log(sigma_1) - 3*log(sigma_0_prop) - sqrt(sigma_1/sigma_0_prop) + sqrt(sigma_0/sigma_1)
+    case_0 = 2*log(sigma_0) + log(sigma_1) - 3*log(sigma_0_prop) - sqrt(sigma_1/sigma_0_prop) + sqrt(sigma_0/sigma_1)
   }
-  qfratio = logomega*case
-  alpha = min(0,qfratio)
+  qfratio_0 = logomega_0*case_0
+  alpha = min(0,qfratio_0)
   u = log(runif(1))
   if (u < alpha) {
-    # Other way around?
-    sigma_0_prop = sigma_0
-    #return(sigma_0_prop)
-  } else {
-    return(sigma_0)
-  }
-  
-}
-
-```
-
-```{r}
-#Acceptance probability for sigma_1
-a_1 = 2.5
-b_1 = 6
-
-sigmaone <- function(a_1, b_1, mu_0, mu_1, sigma_0, sigma_1){
-  sigma_1squared_prop = rinvgamma(1, shape = a_1 + N_1/2, scale = b_1 + sum((y[x==1]-mu_1)^2)/2)
-  sigma_1_prop = sqrt(sigma_1squared_prop)
-  logomega = (2*a_1 + 1)*(log(sigma_1_prop) - log(sigma_1)) + b_1 * (1/sigma_1squared_prop - 1/(sigma_0)^2) - (mu_1-mu_0)/(sqrt(sigma_0_prop*sigma_1)) + (mu_1 - mu_0)/(sqrt(sigma_0*sigma_1))
-  if (sigma_0 <= sigma_1 && sigma_0_prop < sigma_1) {
-    case = 3*(log(sigma_0)-log(sigma_0_prop)) - sqrt(sigma_1/sigma_0_prop) + sqrt(sigma_1/sigma_0)
-  } else if (sigma_0 <= sigma_1 && sigma_0_prop > sigma_1) {
-    case = 3*log(sigma_0) - 2*log(sigma_0_prop) - log(sigma_1) - sqrt(sigma_0_prop/sigma_1) + sqrt(sigma_1/sigma_0)
-  } else if (sigma_0 > sigma_1 && sigma_0_prop > sigma_1) {
-    case = 2*(log(sigma_0)-sigma_0_prop) -sqrt(sigma_0_prop/sigma_1) + sqrt(sigma_0/sigma_1)
-  } else if (sigma_0 > sigma_1 && sigma_0_prop < sigma_1) {
-    case = 2*log(sigma_0) + log(sigma_1) - 3*log(sigma_0_prop) - sqrt(sigma_1/sigma_0_prop) + sqrt(sigma_0/sigma_1)
-  }
-  qfratio = logomega*case
-  alpha = min(0,qfratio)
-  u = log(runif(1))
-  if (u < alpha) {
-    sigma_0_prop = sigma_0
+    sigma_0 = sigma_0_prop
   }
   return(sigma_0)
 }
@@ -505,11 +487,83 @@ sigmaone <- function(a_1, b_1, mu_0, mu_1, sigma_0, sigma_1){
 ```
 
 ```{r}
+#Acceptance probability for sigma_1
+# a_1 = 2.5
+# b_1 = 6
+
+sigmaone <- function(a_1, b_1, N_1, mu_0, mu_1, sigma_0, sigma_1){
+  sigma_1squared_prop = rinvgamma(1, shape = a_1 + N_1/2, scale = b_1 + sum((y[x==1]-mu_1)^2)/2)
+  sigma_1_prop = sqrt(sigma_1squared_prop)
+  logomega_1 = (2*a_1+1)*(log(sigma_1_prop)-log(sigma_1)) + b_1*(1/sigma_1_prop^2 - 1/sigma_1^2) - (mu_1-mu_0)/(sqrt(sigma_0*sigma_1_prop)) + (mu_1-mu_0)/(sqrt(sigma_0*sigma_1))
+  if (sigma_0 <= sigma_1_prop && sigma_0 <= sigma_1) {
+    case_1 = 2*(log(sigma_1)-log(sigma_1_prop)) - sqrt(sigma_1_prop/sigma_0) + sqrt(sigma_1/sigma_0)
+  } else if (sigma_0 <= sigma_1_prop && sigma_0 > sigma_1) {
+    case_1 = 3*log(sigma_1) - log(sigma_0) - 2*log(sigma_1_prop) - sqrt(sigma_1_prop/sigma_0) + sqrt(sigma_0/sigma_1)
+  } else if (sigma_0 > sigma_1_prop && sigma_0 > sigma_1) {
+    case_1 = 3*(log(sigma_1)-log(sigma_1_prop)) - sqrt(sigma_0/sigma_1_prop) + sqrt(sigma_0/sigma_1)
+  } else if (sigma_0 > sigma_1_prop && sigma_0 <= sigma_1) {
+    case_1 = log(sigma_0) + 2*log(sigma_1) - 3*log(sigma_1_prop) - sqrt(sigma_0/sigma_1_prop) + sqrt(sigma_1/sigma_0)
+  }
+  qfratio_1 = logomega_1*case_1
+  alpha = min(0,qfratio_1)
+  u = log(runif(1))
+  if (u < alpha) {
+    sigma_1 = sigma_1_prop
+  }
+  return(sigma_1)
+}
+
+```
+
+```{r}
 # Updating x and parameters
-numruns <- 10
+numruns <- 100
+
+#Initialize
+y = read.table("./image.txt", header = FALSE, sep = " ")
+nrows = dim(y)[1]
+ncolumns = dim(y)[2]
+x = matrix(rbinom(nrows * ncolumns, 1, 0.5), ncol = ncolumns, nrow = nrows)
+
+
+mu0_old <- -1
+sigma0_old <- 0.5
+a_0 <- 2.5
+b_0 <- 6
+
+mu1_old <- 2
+sigma1_old <- 0.5
+a_1 <- 2.5
+b_1 <- 6
+
+beta <- 1
+
+# Run algorithm
 for (runs in 1:numruns){
-  xupdate <- x_update(89*85, x, mu_0, mu_1, sigma_0, sigma_1)
-  newmu0 <- muzero()
+  xupdate <- x_update(1000, x, mu0_old, mu1_old, sigma0_old, sigma1_old, beta)
+  
+  res0 <- fcount(xupdate,y,0)
+  N_0 <- res0$count
+  ysum0 <- res0$ysum
+  # Update mu_0
+  mu_0 <- muzero(N_0, ysum0, sigma0_old, mu0_old)
+  
+  res1 <- fcount(xupdate,y,1)
+  N_1 <- res1$count
+  ysum1 <- res1$ysum
+  #Update mu_1
+  mu_1 <- muone(N_1, ysum1, sigma1_old, mu1_old)
+  
+  # Update sigma_0, sigma_1
+  sigma_0 <- sigmazero(a_0, b_0, N_0, mu0_old, mu1_old, sigma0_old, sigma1_old)
+  sigma_1 <- sigmaone(a_1, b_1, N_1, mu0_old, mu1_old, sigma0_old, sigma1_old)
+  
+  # Updates for next iteration
+  mu0_old <- mu_0
+  mu1_old <- mu_1
+  sigma0_old <- sigma_0
+  sigma1_old <- sigma_1 
+  x <- xupdate
 }
 
 
