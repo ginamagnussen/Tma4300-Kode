@@ -425,10 +425,19 @@ Q(\mu_0|...) \propto \exp\left(-\frac{N_0}{2\sigma_0^2}\left[\mu_0-\frac{1}{N_0}
 
 Further we need
 \[
-f(x, \bar{\varphi}|y) = f(x, \bar{\mu}_0, \mu_1, \sigma_0, \sigma_1|y) \propto f(\bar{\varphi})\cdot f(x) \cdot( f(y|x,\bar{\varphi}))
+f(x, \bar{\varphi}|y) = f(x, \bar{\mu}_0, \mu_1, \sigma_0, \sigma_1|y) \propto f(\bar{\varphi})\cdot f(x) \cdot f(y|x,\bar{\varphi}) \propto f(\bar{\varphi})\cdot f(y|x, \varphi)
+\]
+where $f(\varphi)$ is given above, and $f(y|x, \varphi) \sim N(\mu_0, \sigma_0^2)$ as given in the exercise set. Computing this on a log scale, we get
 
+\[
+\alpha = \min\left\{0, \log\left(\frac{f(x,\bar{\varphi}|y)}{f(x,\varphi|y)}\frac{Q(\mu_0|...)}{Q(\bar{\mu}_0|...)}\right)\right\}
 \]
 
+Do the same corresponding computations with $x_{ij} = 1$ for $\mu_1$ to obtain acceptance probability 
+\[
+\alpha = \min\left\{0, \log\left(\frac{f(x,\bar{\varphi}|y)}{f(x,\varphi|y)}\frac{Q(\mu_1|...)}{Q(\bar{\mu}_1|...)}\right)\right\}
+\]
+where $f(y|x,\varphi) \sim N(\mu_1, \sigma_1^2)$ and $Q(\mu_1,|...) \sim N\left(\frac{1}{N_1}\sum_{x_{ij}=1}y_{ij}, \frac{\sigma_1^2}{N_1}\right)$
 4. 
 c)
 We want to find the acceptance probability for $\sigma_0$. Since we know that the full conditional for $\sigma_0^2$ is inverse gamma distributed, we can use the transformation formula to determine the full conditional distribution for $\sigma_0$. We denote this as $Q(\sigma_0|x,y,\varphi^{-1})$. Then $w(\sigma_0) = \sigma_0^2$
