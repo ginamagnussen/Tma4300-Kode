@@ -8,6 +8,48 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r, include=FALSE}
 library(invgamma)
+library(ggplot2)
+library(MASS)
+library(latex2exp)
+library(extrafont)
+```
+
+```{r include=FALSE}
+multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
+  library(grid)
+
+  # Make a list from the ... arguments and plotlist
+  plots <- c(list(...), plotlist)
+
+  numPlots = length(plots)
+
+  # If layout is NULL, then use 'cols' to determine layout
+  if (is.null(layout)) {
+    # Make the panel
+    # ncol: Number of columns of plots
+    # nrow: Number of rows needed, calculated from # of cols
+    layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
+                    ncol = cols, nrow = ceiling(numPlots/cols))
+  }
+
+ if (numPlots==1) {
+    print(plots[[1]])
+
+  } else {
+    # Set up the page
+    grid.newpage()
+    pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
+
+    # Make each plot, in the correct location
+    for (i in 1:numPlots) {
+      # Get the i,j matrix positions of the regions that contain this subplot
+      matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
+
+      print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
+                                      layout.pos.col = matchidx$col))
+    }
+  }
+} 
 ```
 
 ```{r}
@@ -82,30 +124,23 @@ x_update <- function(times, x, mu_0, mu_1, sigma_0, sigma_1, beta){
 # test1 <- muone(N_1, ysum1, sigma_1, mu1_old)
 # test1
 
-muzero = function(N_0, ysum0, sigma_0, mu_0) {
+muzero = function(N_0, ysum0, sigma_0, mu_0, mu_1) {
   mu_0_prop <- rnorm(1, ysum0/N_0, sqrt((sigma_0^2)/N_0))
-  qfratio = 3*(log(mu_1-mu_0_prop)-log(mu_1-mu_0_prop)) - (mu_0 - mu_0_prop)/sqrt(sigma_0*sigma_1)
-  alpha = min(0,qfratio)
-  u = log(runif(1))
-  if (u < alpha) {
-  mu_0 = mu_0_prop
+  if (mu_0_prop > mu_1) {
+    return(mu_0)
   }
-  return(mu_0)
-  # if (mu_0_prop){
-  #   return(mu_0)
-  # }
-  # else {
-  #   qfratio = 3*(log(mu_1-mu_0_prop)-log(mu_1-mu_0_prop)) - (mu_0 - mu_0_prop)/sqrt(sigma_0*sigma_1)
-  #   alpha = min(0,qfratio)
-  #   u = log(runif(1))
-  #   if (u < alpha) {
-  #     mu_0 = mu_0_prop
-  #   }
-  #   return(mu_0)
-  # }
+  else {
+    qfratio = 3*(log(mu_1-mu_0_prop)-log(mu_1-mu_0_prop)) - (mu_0 - mu_0_prop)/sqrt(sigma_0*sigma_1)
+    alpha = min(0,qfratio)
+    u = log(runif(1))
+    if (u < alpha) {
+      mu_0 = mu_0_prop
+    }
+    return(mu_0)
+  }
 }
 
-muone = function(N_1, ysum1, sigma_1, mu_1) {
+muone = function(N_1, ysum1, sigma_1, mu_0, mu_1) {
   mu_1_prop <- rnorm(1, ysum1/N_1, sqrt((sigma_1^2)/N_1))
   if (mu_1_prop < mu_0) {
     return(mu_1)
@@ -133,9 +168,9 @@ muone = function(N_1, ysum1, sigma_1, mu_1) {
 # b_0 = 6
 
 sigmazero <- function(a_0, b_0, N_0, mu_0, mu_1, sigma_0, sigma_1){
-  sigma_0squared_prop = rinvgamma(1, shape = a_0 + N_0/2, scale = b_0 + sum((y[x==0]-mu_0)^2)/2)
+  sigma_0squared_prop = rinvgamma(1, shape = (a_0 + N_0/2), scale = 1/(b_0 + sum((y[x==0]-mu_0)^2)/2))
   sigma_0_prop = sqrt(sigma_0squared_prop)
-  logomega_0 = (2*a_0 + 1)*(log(sigma_0_prop) - log(sigma_0)) + b_0 * (1/sigma_0squared_prop - 1/(sigma_0)^2) - (mu_1-mu_0)/(sqrt(sigma_0_prop*sigma_1)) + (mu_1 - mu_0)/(sqrt(sigma_0*sigma_1))
+  logomega_0 = (2*a_0 + 1)*(log(sigma_0_prop) - log(sigma_0)) + 1/b_0 * (1/sigma_0squared_prop - 1/(sigma_0)^2) - (mu_1-mu_0)/(sqrt(sigma_0_prop*sigma_1)) + (mu_1 - mu_0)/(sqrt(sigma_0*sigma_1))
   if (sigma_0 <= sigma_1 && sigma_0_prop < sigma_1) {
     case_0 = 3*(log(sigma_0)-log(sigma_0_prop)) - sqrt(sigma_1/sigma_0_prop) + sqrt(sigma_1/sigma_0)
   } else if (sigma_0 <= sigma_1 && sigma_0_prop > sigma_1) {
@@ -145,7 +180,7 @@ sigmazero <- function(a_0, b_0, N_0, mu_0, mu_1, sigma_0, sigma_1){
   } else if (sigma_0 > sigma_1 && sigma_0_prop < sigma_1) {
     case_0 = 2*log(sigma_0) + log(sigma_1) - 3*log(sigma_0_prop) - sqrt(sigma_1/sigma_0_prop) + sqrt(sigma_0/sigma_1)
   }
-  qfratio_0 = logomega_0+case_0
+  qfratio_0 = case_0 + logomega_0
   alpha = min(0,qfratio_0)
   u = log(runif(1))
   if (u < alpha) {
@@ -161,9 +196,9 @@ sigmazero <- function(a_0, b_0, N_0, mu_0, mu_1, sigma_0, sigma_1){
 # b_1 = 6
 
 sigmaone <- function(a_1, b_1, N_1, mu_0, mu_1, sigma_0, sigma_1){
-  sigma_1squared_prop = rinvgamma(1, shape = a_1 + N_1/2, scale = b_1 + sum((y[x==1]-mu_1)^2)/2)
+  sigma_1squared_prop = rinvgamma(1, shape = a_1 + N_1/2, scale = 1/(b_1 + sum((y[x==1]-mu_1)^2)/2))
   sigma_1_prop = sqrt(sigma_1squared_prop)
-  logomega_1 = (2*a_1+1)*(log(sigma_1_prop)-log(sigma_1)) + b_1*(1/sigma_1_prop^2 - 1/sigma_1^2) - (mu_1-mu_0)/(sqrt(sigma_0*sigma_1_prop)) + (mu_1-mu_0)/(sqrt(sigma_0*sigma_1))
+  logomega_1 = (2*a_1+1)*(log(sigma_1_prop)-log(sigma_1)) + 1/b_1*(1/sigma_1_prop^2 - 1/sigma_1^2) - (mu_1-mu_0)/(sqrt(sigma_0*sigma_1_prop)) + (mu_1-mu_0)/(sqrt(sigma_0*sigma_1))
   if (sigma_0 <= sigma_1_prop && sigma_0 <= sigma_1) {
     case_1 = 2*(log(sigma_1)-log(sigma_1_prop)) - sqrt(sigma_1_prop/sigma_0) + sqrt(sigma_1/sigma_0)
   } else if (sigma_0 <= sigma_1_prop && sigma_0 > sigma_1) {
@@ -173,7 +208,7 @@ sigmaone <- function(a_1, b_1, N_1, mu_0, mu_1, sigma_0, sigma_1){
   } else if (sigma_0 > sigma_1_prop && sigma_0 <= sigma_1) {
     case_1 = log(sigma_0) + 2*log(sigma_1) - 3*log(sigma_1_prop) - sqrt(sigma_0/sigma_1_prop) + sqrt(sigma_1/sigma_0)
   }
-  qfratio_1 = logomega_1+case_1
+  qfratio_1 = case_1 + logomega_1
   alpha = min(0,qfratio_1)
   u = log(runif(1))
   if (u < alpha) {
@@ -185,70 +220,190 @@ sigmaone <- function(a_1, b_1, N_1, mu_0, mu_1, sigma_0, sigma_1){
 
 ```{r}
 # Updating x and parameters
-numruns <- 50
-updates <- 89*85
+numruns <- 10
 
 #Initialize
-y = read.table("./image.txt", header = FALSE, sep = " ")
+#y = read.table("./image.txt", header = FALSE, sep = " ")
+y = matrix(scan("./image.txt", sep = " "), nrow = 85)
 nrows = dim(y)[1]
 ncolumns = dim(y)[2]
 x = matrix(rbinom(nrows * ncolumns, 1, 0.5), ncol = ncolumns, nrow = nrows)
-expvalsum <- matrix(0, nrows, ncolumns)
-muzeros <- rep(0,numruns)
-muones <- rep(0, numruns)
-sigmazeros <- rep(0, numruns)
-sigmaones <- rep(0, numruns)
 
 
 mu_0 <- -1
 sigma_0 <- 0.5
-a_0 <- 2.5
-b_0 <- 6
+a_0 <- 3
+b_0 <- 7
 
 mu_1 <- 2
 sigma_1 <- 0.5
-a_1 <- 2.5
-b_1 <- 6
+a_1 <- 3
+b_1 <- 7
 
-beta <- 1
+beta <- 0
+
+#Saving parameter values
+mu_0_vec = rep(0,numruns)
+mu_0_vec[1] = mu_0
+mu_1_vec = rep(0,numruns)
+mu_1_vec[1] = mu_1
+sigma_0_vec = rep(0,numruns)
+sigma_0_vec[1] = sigma_0
+sigma_1_vec = rep(0,numruns)
+sigma_1_vec[1] = sigma_1
+
+expvalsum <- matrix(0, nrows, ncolumns)
+N1_vec <- rep(0, numruns)
+burn_in <- 5
+if(numruns < burn_in){
+  print("Stop and adjust burn in")
+}
+
+avg <- rep(0, numruns-burn_in)
 
 # Run algorithm
-for (runs in 1:numruns){
-  xupdate <- x_update(updates, x, mu_0, mu_1, sigma_0, sigma_1, beta)
+for (runs in 1:(numruns-1)) {
+  xupdate <- x_update(89*85, x, mu_0, mu_1, sigma_0, sigma_1, beta)
   
   N_0 = sum(x==0)
   ysum0 = sum(y[x==0])
   # Update mu_0
-  mu_0 <- muzero(N_0, ysum0, sigma_0, mu_0)
-  muzeros[runs] <- mu_0
+  mu_0 <- muzero(N_0, ysum0, sigma_0, mu_0, mu_1)
+  mu_0_vec[runs+1] = mu_0
   
   N_1 = sum(x==1)
+  N1_vec[runs+1] = N_1
   ysum1 = sum(y[x==1])
-  #Update mu_1
-  mu_1 <- muone(N_1, ysum1, sigma_1, mu_1)
-  muones[runs] <- mu_1
-  
+  # Update mu_1
+  mu_1 <- muone(N_1, ysum1, sigma_1, mu_0, mu_1)
+  mu_1_vec[runs+1] = mu_1
   
   # Update sigma_0, sigma_1
   sigma_0 <- sigmazero(a_0, b_0, N_0, mu_0, mu_1, sigma_0, sigma_1)
-  sigmazeros[runs] <- sigma_0
+  sigma_0_vec[runs+1] = sigma_0
   sigma_1 <- sigmaone(a_1, b_1, N_1, mu_0, mu_1, sigma_0, sigma_1)
-  sigmaones[runs] <- sigma_1
-  
+  sigma_1_vec[runs+1] = sigma_1
   # Updates for next iteration
   x <- xupdate
-  expvalsum <- expvalsum + x
+  if (runs > burn_in){
+    expvalsum <- expvalsum + x
+    avg[runs-burn_in] <- mean(x) # Why?
+  }
 }
-
-#expvalsum <- expvalsum/numruns
 ```
+
+```{r}
+#Acceptance rates after burning
+counter_mu_0 = 0
+counter_mu_1 = 0
+counter_sigma_0 = 0
+counter_sigma_1 = 0
+burnin = 100
+for (i in (burnin:(numruns-1))) {
+  if (mu_0_vec[i] != mu_0_vec[i+1]) {
+    counter_mu_0 = counter_mu_0 + 1
+  }
+  if (mu_1_vec[i] != mu_1_vec[i+1]) {
+    counter_mu_1 = counter_mu_1 + 1
+  }
+  if (sigma_0_vec[i] != sigma_0_vec[i+1]) {
+    counter_sigma_0 = counter_sigma_0 + 1
+  }
+  if (sigma_1_vec[i] != sigma_1_vec[i+1]) {
+    counter_sigma_1 = counter_sigma_1 + 1
+  }
+}
+acceptancerate_mu_0 = counter_mu_0 / (numruns - burnin)
+acceptancerate_mu_1 = counter_mu_1 / (numruns - burnin)
+acceptancerate_sigma_0 = counter_sigma_0 / (numruns - burnin)
+acceptancerate_sigma_1 = counter_sigma_1 / (numruns - burnin)
+```
+
 
 
 ```{r}
-# Plots of parameters
-plot(1:numruns, muzeros)
-plot(1:numruns, muones)
-plot(1:numruns, sigmazeros)
-plot(1:numruns, sigmaones)
+
+iter = seq(1:numruns)
+mu_0_frame = data.frame(iter,mu_0_vec)
+mu_0_plot = ggplot(mu_0_frame) + geom_line(aes(iter,mu_0_vec)) + labs(title = TeX(""), x = TeX("Number of iterations$"), y = TeX("$\\mu_0$"), caption = TeX("Figure 1. $\\mu_0$ versus number of iterations")) + theme(plot.caption=element_text(hjust = -0.001)) + theme(text=element_text(size=10))
+
+mu_1_frame = data.frame(iter,mu_1_vec)
+mu_1_plot = ggplot(mu_1_frame) + geom_line(aes(iter,mu_1_vec)) + labs(title = TeX(""), x = TeX("Number of iterations$"), y = TeX("$\\mu_1$"), caption = TeX("Figure 1. $\\mu_1$ versus number of iterations")) + theme(plot.caption=element_text(hjust = -0.001)) + theme(text=element_text(size=10))
+
+sigma_0_frame = data.frame(iter,sigma_0_vec)
+sigma_0_plot = ggplot(sigma_0_frame) + geom_line(aes(iter,sigma_0_vec)) + labs(title = TeX(""), x = TeX("Number of iterations$"), y = TeX("$\\sigma_0$"), caption = TeX("Figure 1. $\\sigma_0$ versus number of iterations")) + theme(plot.caption=element_text(hjust = -0.001)) + theme(text=element_text(size=10))
+
+sigma_1_frame = data.frame(iter,sigma_1_vec)
+sigma_1_plot = ggplot(sigma_1_frame) + geom_line(aes(iter,sigma_1_vec)) + labs(title = TeX(""), x = TeX("Number of iterations$"), y = TeX("$\\sigma_1$"), caption = TeX("Figure 1. $\\sigma_1$ versus number of iterations")) + theme(plot.caption=element_text(hjust = -0.001)) + theme(text=element_text(size=10))
+multiplot(mu_0_plot, mu_1_plot, sigma_0_plot, sigma_1_plot, cols = 2)
+
+#Plot 
+N_1_frame = data.frame(iter, N1_vec)
+N_1_plot = ggplot(N_1_frame) + geom_line(aes(iter,N1_vec)) + labs(title = TeX(""), x = TeX("Number of iterations$"), y = TeX("$N_1$"), caption = TeX("Figure 1. $N_1$ versus number of iterations")) + theme(plot.caption=element_text(hjust = -0.001)) + theme(text=element_text(size=10))
+N_1_plot
 ```
+```{r}
+# Evaluation of properties of the algorithm 
+
+# B.6.a)
+# Expected value E[x_ij|y]
+expvalsum <- expvalsum/(numruns-burn_in)
+expvalsum2 <- expvalsum
+image(z = expvalsum)
+
+# Posterior marginal most probable value for x_ij
+# arg max f(x_ij|y)
+xround <- round(expvalsum)
+image(z = xround)
+# Fraction of nodes where posterior most probable value x_ij = 1
+fracnodes_post <- mean(xround)
+print("Fraction of nodes where posterior most probable value x_{ij} = 1")
+print(fracnodes_post)
+
+#B.6.b)
+# Expected fraction of nodes with x_{ij} = 1
+fracnodes <- mean(avg) # Er nok denne som er rett, det bare gir ikke mening hvorfor akkurat nå
+fracnodes2 <- mean(expvalsum2)
+print("Expected fraction of nodes with x_{ij} = 1")
+print(fracnodes)
+print(fracnodes2)
+```
+
+## B.7.
+```{r}
+# a)
+# Set \beta = 1
+# Marginal distributions
+truehist(mu_0_vec[burn_in:numruns])
+truehist(mu_1_vec[burn_in:numruns])
+truehist(sigma_0_vec[burn_in:numruns])
+truehist(sigma_1_vec[burn_in:numruns])
+
+
+truehist(y[x==0])
+
+#b)
+# Variance of gamma & Confidence Interval
+#variance <- var(avg)
+variance <- var(avg)
+qtlower <- qt(0.05, 85*89-1)
+qtupper <- qt(0.95, 85*89-1)
+CI <- c(fracnodes+qtlower*(sqrt(variance)), fracnodes+qtupper*sqrt(variance))
+
+
+# c)
+# Credible interval
+avg <- sort(avg)
+print(quantile(avg, c(0.05, 0.95)))
+low <- round(0.05*(numruns-burn_in))
+upp <- round(0.95*(numruns-burn_in))
+credint <- c(avg[low], avg[upp]) 
+print("Credible interval for x_ij == 1, 90%")
+print(credint)
+
+
+# Since variance is estimated, and expected value is 
+```
+
+
 
